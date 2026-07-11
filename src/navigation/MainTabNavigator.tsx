@@ -4,6 +4,7 @@ import HomeScreen from '../screens/HomeScreen';
 import TaskListScreen from '../screens/TaskListScreen';
 import WalletScreen from '../screens/WalletScreen';
 import SubmitPlaceholderScreen from '../screens/SubmitPlaceholderScreen';
+import TabBarIcon from '../components/TabBarIcon';
 
 export type MainTabParamList = {
   Home: undefined;
@@ -27,22 +28,38 @@ export default function MainTabNavigator() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarIcon: () => null }}
+        options={{
+          tabBarIcon: ({ focused, color }) => (
+            <TabBarIcon emoji="🏠" focused={focused} color={color} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Tasks"
         component={TaskListScreen}
-        options={{ tabBarIcon: () => null }}
+        options={{
+          tabBarIcon: ({ focused, color }) => (
+            <TabBarIcon emoji="🌿" focused={focused} color={color} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Submit"
         component={SubmitPlaceholderScreen}
-        options={{ tabBarIcon: () => null }}
+        options={{
+          tabBarIcon: ({ focused, color }) => (
+            <TabBarIcon emoji="📸" focused={focused} color={color} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Wallet"
         component={WalletScreen}
-        options={{ tabBarIcon: () => null }}
+        options={{
+          tabBarIcon: ({ focused, color }) => (
+            <TabBarIcon emoji="💰" focused={focused} color={color} />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
