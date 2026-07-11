@@ -190,9 +190,7 @@ export default function HomeScreen() {
                   >
                     +{a.rewardAmount}
                   </Text>
-                  <Text
-                    style={{ color: colors.textSecondary, fontSize: 11 }}
-                  >
+                  <Text style={{ color: colors.textSecondary, fontSize: 11 }}>
                     {a.rewardToken}
                   </Text>
                 </View>

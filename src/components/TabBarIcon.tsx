@@ -11,7 +11,7 @@ interface TabBarIconProps {
 export default function TabBarIcon({
   emoji,
   focused,
-  color,
+  color: _color,
   size = 22,
 }: TabBarIconProps) {
   return (

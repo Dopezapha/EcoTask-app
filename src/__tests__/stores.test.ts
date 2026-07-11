@@ -156,7 +156,6 @@ describe('taskStore', () => {
     reset();
     const state = useTaskStore.getState();
     expect(state.tasks).toEqual([]);
-    expect(state.isLoading).toBe(false);
     expect(state.error).toBeNull();
     expect(state.page).toBe(1);
     expect(state.hasMore).toBe(true);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { colors, spacing } from '../utils/theme';
+import { colors } from '../utils/theme';
 
 interface RewardBadgeProps {
   rewardAmount: number;

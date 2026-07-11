@@ -6,7 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "jest --passWithNoTests --testPathIgnorePatterns='integration'",
+    "test": "jest --passWithNoTests --testPathIgnorePatterns='integration' --testPathIgnorePatterns='__mocks__'",
     "test:integration": "jest --passWithNoTests --testMatch='**/__tests__/**/*.integration.*'",
     "lint": "eslint ."
   },
@@ -48,6 +48,10 @@
     "typescript": "5.3.3"
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "testPathIgnorePatterns": [
+      "integration",
+      "__mocks__"
+    ]
   }
 }

@@ -1,4 +1,7 @@
-export function formatTokenAmount(amount: number | string, decimals = 2): string {
+export function formatTokenAmount(
+  amount: number | string,
+  decimals = 2,
+): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
   if (isNaN(num)) {
     return '0';

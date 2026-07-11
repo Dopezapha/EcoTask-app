@@ -13,8 +13,14 @@ interface FreighterWindow {
 }
 
 export function useStellarWallet() {
-  const { connect, disconnect, setBalance, setEcoBalance, publicKey, isConnected } =
-    useWalletStore();
+  const {
+    connect,
+    disconnect,
+    setBalance,
+    setEcoBalance,
+    publicKey,
+    isConnected,
+  } = useWalletStore();
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +48,7 @@ export function useStellarWallet() {
     } finally {
       setIsConnecting(false);
     }
-  }, [connect, setBalance]);
+  }, [connect, setBalance, refreshEcoBalance]);
 
   const connectLobstr = useCallback(async () => {
     setError('Lobstr integration coming soon');
@@ -63,7 +69,7 @@ export function useStellarWallet() {
     } finally {
       setIsConnecting(false);
     }
-  }, [connect, setBalance]);
+  }, [connect, setBalance, refreshEcoBalance]);
 
   const disconnectWallet = useCallback(() => {
     disconnect();
@@ -82,7 +88,11 @@ export function useStellarWallet() {
       const ecoCode = Config.ECO_TOKEN_ASSET_CODE;
       const ecoIssuer = Config.ECO_TOKEN_ISSUER;
       if (key && ecoCode && ecoIssuer) {
-        const ecoBalance = await stellar.getTokenBalance(key, ecoCode, ecoIssuer);
+        const ecoBalance = await stellar.getTokenBalance(
+          key,
+          ecoCode,
+          ecoIssuer,
+        );
         setEcoBalance(ecoBalance);
       }
     },

@@ -168,7 +168,11 @@ function SettingsRow({
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {value && (
           <Text
-            style={{ color: colors.textSecondary, fontSize: 14, marginRight: spacing.sm }}
+            style={{
+              color: colors.textSecondary,
+              fontSize: 14,
+              marginRight: spacing.sm,
+            }}
           >
             {value}
           </Text>
