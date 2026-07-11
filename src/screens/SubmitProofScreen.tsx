@@ -8,6 +8,7 @@ import {
 import { colors, spacing } from '../utils/theme';
 import { useLocation } from '../hooks/useLocation';
 import { useProofSubmit } from '../hooks/useProofSubmit';
+import { useActivityStore } from '../store/activityStore';
 import EmptyState from '../components/EmptyState';
 
 type SubmitProofRoute = RouteProp<
@@ -23,6 +24,7 @@ export default function SubmitProofScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const { location, error: locationError } = useLocation();
   const { submit, isSubmitting, progress, error } = useProofSubmit();
+  const addActivity = useActivityStore(s => s.addActivity);
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
 
@@ -43,8 +45,20 @@ export default function SubmitProofScreen() {
       Alert.alert('Error', 'Please take a photo first');
       return;
     }
-    await submit(taskId, photoUri, location?.lat, location?.lng);
-  }, [photoUri, taskId, location, submit]);
+    const result = await submit(taskId, photoUri, location?.lat, location?.lng);
+    if (result) {
+      addActivity({
+        id: Date.now().toString(),
+        taskId,
+        taskTitle: result.taskTitle || 'Task Completed',
+        taskType: result.taskType || 'OTHER',
+        rewardAmount: result.rewardAmount || 0,
+        rewardToken: result.rewardToken || 'ECO',
+        completedAt: new Date().toISOString(),
+        status: 'confirmed',
+      });
+    }
+  }, [photoUri, taskId, location, submit, addActivity]);
 
   const progressLabels: Record<string, string> = {
     uploading: 'Uploading proof...',

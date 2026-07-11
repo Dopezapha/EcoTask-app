@@ -4,10 +4,32 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
 import { useUserStore } from '../store/userStore';
+import { useActivityStore } from '../store/activityStore';
+
+const TYPE_ICONS: Record<string, string> = {
+  TREE_PLANTING: '🌳',
+  TRASH_COLLECTION: '♻️',
+  OCEAN_CLEANUP: '🌊',
+  GARDENING: '🌱',
+  EDUCATION: '📚',
+  OTHER: '📍',
+};
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user } = useUserStore();
+  const activities = useActivityStore(s => s.activities);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -93,30 +115,90 @@ export default function HomeScreen() {
           >
             Recent Activity
           </Text>
-          <View
-            style={{
-              backgroundColor: colors.surface,
-              borderRadius: 12,
-              padding: spacing.lg,
-              alignItems: 'center',
-              borderWidth: 1,
-              borderColor: colors.border,
-              borderStyle: 'dashed',
-            }}
-          >
-            <Text style={{ color: colors.textSecondary }}>
-              No recent activity yet.
-            </Text>
-            <Text
+
+          {activities.length === 0 ? (
+            <View
               style={{
-                color: colors.textSecondary,
-                fontSize: 12,
-                marginTop: spacing.xs,
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                padding: spacing.lg,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderStyle: 'dashed',
               }}
             >
-              Complete your first task to see it here!
-            </Text>
-          </View>
+              <Text style={{ color: colors.textSecondary }}>
+                No recent activity yet.
+              </Text>
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontSize: 12,
+                  marginTop: spacing.xs,
+                }}
+              >
+                Complete your first task to see it here!
+              </Text>
+            </View>
+          ) : (
+            activities.slice(0, 5).map(a => (
+              <View
+                key={a.id}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: colors.surface,
+                  borderRadius: 12,
+                  padding: spacing.md,
+                  marginBottom: spacing.sm,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <Text style={{ fontSize: 24, marginRight: spacing.md }}>
+                  {TYPE_ICONS[a.taskType] || '📍'}
+                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ color: colors.text, fontWeight: '600' }}
+                    numberOfLines={1}
+                  >
+                    {a.taskTitle}
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontSize: 12,
+                      marginTop: 2,
+                    }}
+                  >
+                    {timeAgo(a.completedAt)}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text
+                    style={{
+                      color:
+                        a.status === 'confirmed'
+                          ? colors.primary
+                          : a.status === 'pending'
+                            ? colors.warning
+                            : colors.error,
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    +{a.rewardAmount}
+                  </Text>
+                  <Text
+                    style={{ color: colors.textSecondary, fontSize: 11 }}
+                  >
+                    {a.rewardToken}
+                  </Text>
+                </View>
+              </View>
+            ))
+          )}
         </View>
       </View>
     </ScrollView>
