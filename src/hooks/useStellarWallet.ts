@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
+import Config from 'react-native-config';
 import { useWalletStore } from '../store/walletStore';
 import * as stellar from '../services/stellar';
 
@@ -12,7 +13,7 @@ interface FreighterWindow {
 }
 
 export function useStellarWallet() {
-  const { connect, disconnect, setBalance, publicKey, isConnected } =
+  const { connect, disconnect, setBalance, setEcoBalance, publicKey, isConnected } =
     useWalletStore();
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +36,7 @@ export function useStellarWallet() {
       connect(key);
       const balance = await stellar.getBalance(key);
       setBalance(balance);
+      await refreshEcoBalance(key);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -54,6 +56,7 @@ export function useStellarWallet() {
       connect(publicKey);
       const balance = await stellar.getBalance(publicKey);
       setBalance(balance);
+      await refreshEcoBalance(publicKey);
       return { publicKey, secretKey };
     } catch (err: any) {
       setError(err.message);
@@ -73,11 +76,25 @@ export function useStellarWallet() {
     }
   }, [publicKey, setBalance]);
 
+  const refreshEcoBalance = useCallback(
+    async (pk?: string) => {
+      const key = pk || publicKey;
+      const ecoCode = Config.ECO_TOKEN_ASSET_CODE;
+      const ecoIssuer = Config.ECO_TOKEN_ISSUER;
+      if (key && ecoCode && ecoIssuer) {
+        const ecoBalance = await stellar.getTokenBalance(key, ecoCode, ecoIssuer);
+        setEcoBalance(ecoBalance);
+      }
+    },
+    [publicKey, setEcoBalance],
+  );
+
   useEffect(() => {
     if (isConnected && publicKey) {
       refreshBalance();
+      refreshEcoBalance();
     }
-  }, [isConnected, publicKey, refreshBalance]);
+  }, [isConnected, publicKey, refreshBalance, refreshEcoBalance]);
 
   return {
     isConnecting,
@@ -89,5 +106,6 @@ export function useStellarWallet() {
     createInAppWallet,
     disconnectWallet,
     refreshBalance,
+    refreshEcoBalance,
   };
 }

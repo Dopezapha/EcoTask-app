@@ -13,9 +13,11 @@ interface WalletState {
   isConnected: boolean;
   publicKey: string | null;
   balance: string | null;
+  ecoBalance: string | null;
   connect: (publicKey: string) => void;
   disconnect: () => void;
   setBalance: (balance: string) => void;
+  setEcoBalance: (ecoBalance: string) => void;
 }
 
 export const useWalletStore = create<WalletState>()(
@@ -24,10 +26,17 @@ export const useWalletStore = create<WalletState>()(
       isConnected: false,
       publicKey: null,
       balance: null,
+      ecoBalance: null,
       connect: publicKey => set({ isConnected: true, publicKey }),
       disconnect: () =>
-        set({ isConnected: false, publicKey: null, balance: null }),
+        set({
+          isConnected: false,
+          publicKey: null,
+          balance: null,
+          ecoBalance: null,
+        }),
       setBalance: balance => set({ balance }),
+      setEcoBalance: ecoBalance => set({ ecoBalance }),
     }),
     {
       name: 'wallet-storage',

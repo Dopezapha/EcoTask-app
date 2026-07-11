@@ -7,7 +7,7 @@ import EmptyState from '../components/EmptyState';
 import Skeleton from '../components/LoadingSkeleton';
 
 export default function WalletScreen() {
-  const { balance, publicKey, isConnected } = useWalletStore();
+  const { balance, ecoBalance, publicKey, isConnected } = useWalletStore();
   const { disconnectWallet, refreshBalance } = useStellarWallet();
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +71,7 @@ export default function WalletScreen() {
         }}
       >
         <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-          Balance
+          XLM Balance
         </Text>
         <Text
           style={{
@@ -84,6 +84,30 @@ export default function WalletScreen() {
           {balance ?? '0'}{' '}
           <Text style={{ fontSize: 18, color: colors.primary }}>XLM</Text>
         </Text>
+
+        <View
+          style={{
+            marginTop: spacing.md,
+            padding: spacing.md,
+            backgroundColor: colors.background,
+            borderRadius: 12,
+          }}
+        >
+          <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+            ECO Token Balance
+          </Text>
+          <Text
+            style={{
+              color: colors.text,
+              fontSize: 24,
+              fontWeight: 'bold',
+              marginTop: spacing.xs,
+            }}
+          >
+            {ecoBalance ?? '0'}{' '}
+            <Text style={{ fontSize: 14, color: colors.primary }}>ECO</Text>
+          </Text>
+        </View>
 
         {publicKey && (
           <Text
