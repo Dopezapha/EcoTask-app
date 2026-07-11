@@ -18,9 +18,13 @@ export default function HomeScreen() {
           paddingBottom: spacing.lg,
         }}
       >
-        <Text style={{ color: colors.text, fontSize: 28, fontWeight: 'bold' }}>
-          Hello, {user?.name || 'Eco Warrior'}!
-        </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Text
+            style={{ color: colors.text, fontSize: 28, fontWeight: 'bold' }}
+          >
+            Hello, {user?.name || 'Eco Warrior'}!
+          </Text>
+        </TouchableOpacity>
         <Text
           style={{
             color: colors.textSecondary,
