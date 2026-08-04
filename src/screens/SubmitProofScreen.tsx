@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import {
   useCameraPermission,
   useCameraDevice,
+  Camera,
 } from 'react-native-vision-camera';
 import { colors, spacing } from '../utils/theme';
 import { useLocation } from '../hooks/useLocation';
@@ -20,6 +21,7 @@ export default function SubmitProofScreen() {
   const route = useRoute<SubmitProofRoute>();
   const navigation = useNavigation();
   const { taskId } = route.params;
+  const cameraRef = useRef<Camera>(null);
 
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const { location, error: locationError } = useLocation();
@@ -35,9 +37,17 @@ export default function SubmitProofScreen() {
   }, [hasPermission, requestPermission]);
 
   const handleCapture = useCallback(async () => {
-    Alert.alert('Camera', 'Photo captured (mock)', [
-      { text: 'OK', onPress: () => setPhotoUri('mock-photo-uri') },
-    ]);
+    if (!cameraRef.current) {
+      return;
+    }
+    try {
+      const photo = await cameraRef.current.takePhoto({
+        flash: 'off',
+      });
+      setPhotoUri(`file://${photo.path}`);
+    } catch (err: any) {
+      Alert.alert('Camera Error', err.message || 'Failed to capture photo');
+    }
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -112,14 +122,32 @@ export default function SubmitProofScreen() {
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
           />
+        ) : device && hasPermission ? (
+          <Camera
+            ref={cameraRef}
+            style={{ width: '100%', height: '100%' }}
+            device={device}
+            isActive={true}
+            photo={true}
+          />
         ) : (
           <View style={{ alignItems: 'center' }}>
-            <Text style={{ fontSize: 64 }} />
+            <Text style={{ fontSize: 64 }}>📷</Text>
             <Text
               style={{ color: colors.textSecondary, marginTop: spacing.md }}
             >
-              {device ? 'Tap to take a photo' : 'No camera available'}
+              {hasPermission === false
+                ? 'Camera permission required'
+                : 'No camera available'}
             </Text>
+            {hasPermission === false && (
+              <TouchableOpacity
+                onPress={requestPermission}
+                style={{ marginTop: spacing.md, padding: spacing.sm }}
+              >
+                <Text style={{ color: colors.primary }}>Grant Permission</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
