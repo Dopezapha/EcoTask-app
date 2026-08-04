@@ -252,6 +252,37 @@ Launch
 
 ---
 
+## 🗺️ Roadmap
+
+EcoTask is in early alpha. Here's what we're building and in what order:
+
+### Now (v0.2 — current)
+- ✅ Wallet connection (Freighter + in-app testnet wallets)
+- ✅ Wallet-based authentication
+- ✅ Real camera proof capture with GPS
+- ✅ Task browsing, filtering, and detail view
+- ✅ Offline proof queue & sync
+- ✅ Impact dashboard & activity feed
+- ✅ Transaction history (Stellar Horizon)
+
+### Next (v0.3)
+- 🔜 **Backend verification engine** — photo + GPS proof validation
+- 🔜 **ECO reward payouts** via Stellar smart contracts
+- 🔜 **Lobstr & xBull wallet support**
+- 🔜 **IPFS proof storage** wired into the submission flow
+- 🔜 **Push notifications** for reward confirmations & new tasks
+
+### Later (v0.4+)
+- 🔜 **Map-based task discovery** (React Native Maps)
+- 🔜 **Multi-language support** (English, Swahili, French, Portuguese)
+- 🔜 **USDC payout option**
+- 🔜 **Withdraw flow & transaction signing**
+- 🔜 **Leaderboards, streaks & community challenges**
+
+> Milestones are tracked in the [GitHub issues](https://github.com/ecotask-network/EcoTask-app/issues) — check the `roadmap` label for current priorities.
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions from everyone!
@@ -263,6 +294,21 @@ We welcome contributions from everyone!
 - 🔒 Report vulnerabilities in [SECURITY.md](SECURITY.md)
 
 Good first issues are tagged [`good first issue`](https://github.com/ecotask-network/ecotask-app/issues?q=label%3A%22good+first+issue%22) in the issue tracker.
+
+---
+
+## 📬 Contact
+
+Questions, feedback, or partnership ideas? We'd love to hear from you.
+
+| Channel | Where |
+|---------|-------|
+| 📧 **Email** | [solapromise112@gmail.com](mailto:solapromise112@gmail.com) |
+| 🐙 **GitHub Organization** | [github.com/ecotask-network](https://github.com/ecotask-network) |
+| 💬 **GitHub Discussions** | [EcoTask-app discussions](https://github.com/ecotask-network/EcoTask-app/discussions) |
+| 🐛 **Bug Reports** | [Open an issue](https://github.com/ecotask-network/EcoTask-app/issues/new?template=bug_report.md) |
+
+**Preferred channel:** For project questions and feature discussions, use GitHub Discussions. For direct or time-sensitive inquiries, email the maintainers.
 
 ---
 

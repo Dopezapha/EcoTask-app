@@ -202,4 +202,4 @@ src/
 
 ## Questions?
 
-Open a [discussion](https://github.com/ecotask-network/EcoTask-app/discussions) or reach out to the maintainers. We're happy to help you get started!
+Open a [discussion](https://github.com/ecotask-network/EcoTask-app/discussions), email the maintainers at [solapromise112@gmail.com](mailto:solapromise112@gmail.com), or join the [EcoTask Network](https://github.com/ecotask-network) on GitHub. We're happy to help you get started!
