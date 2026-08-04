@@ -26,12 +26,27 @@ api.interceptors.response.use(
   },
 );
 
+export async function getAuthChallenge(wallet: string) {
+  const res = await api.post('/auth/challenge', { wallet });
+  return res.data as { challenge: string };
+}
+
 export async function loginWithWallet(
   wallet: string,
   signature: string,
   challenge: string,
 ) {
   const res = await api.post('/auth/login', { wallet, signature, challenge });
+  return res.data as { token: string; user: { id: string; name?: string; bio?: string; avatarUrl?: string } };
+}
+
+export async function fetchUserProfile() {
+  const res = await api.get('/auth/me');
+  return res.data;
+}
+
+export async function updateProfile(data: { name?: string; bio?: string; avatarUrl?: string }) {
+  const res = await api.put('/auth/me', data);
   return res.data;
 }
 

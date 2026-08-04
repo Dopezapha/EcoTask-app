@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useStellarWallet } from '../hooks/useStellarWallet';
+import { useAuth } from '../hooks/useAuth';
+import { useWalletStore } from '../store/walletStore';
 import { colors, spacing } from '../utils/theme';
 
 export default function OnboardingScreen() {
-  const { connectFreighter, createInAppWallet, isConnecting, error } =
+  const { connectFreighter, createInAppWallet, isConnecting, error: walletError } =
     useStellarWallet();
+  const { authenticate, isAuthenticating, error: authError } = useAuth();
+  const { publicKey, isConnected } = useWalletStore();
+
+  useEffect(() => {
+    if (isConnected && publicKey) {
+      authenticate(publicKey).catch(() => {});
+    }
+  }, [isConnected, publicKey]);
+
+  const error = walletError || authError;
 
   return (
     <View
@@ -53,17 +65,17 @@ export default function OnboardingScreen() {
 
       <TouchableOpacity
         onPress={connectFreighter}
-        disabled={isConnecting}
+        disabled={isConnecting || isAuthenticating}
         style={{
           padding: spacing.md,
           backgroundColor: colors.primary,
           borderRadius: 12,
           alignItems: 'center',
           marginBottom: spacing.md,
-          opacity: isConnecting ? 0.5 : 1,
+          opacity: isConnecting || isAuthenticating ? 0.5 : 1,
         }}
       >
-        {isConnecting ? (
+        {isConnecting || isAuthenticating ? (
           <ActivityIndicator color="#FFF" />
         ) : (
           <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 16 }}>
@@ -74,7 +86,7 @@ export default function OnboardingScreen() {
 
       <TouchableOpacity
         onPress={createInAppWallet}
-        disabled={isConnecting}
+        disabled={isConnecting || isAuthenticating}
         style={{
           padding: spacing.md,
           backgroundColor: colors.surface,
