@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useUserStore } from '../store/userStore';
 import { useWalletStore } from '../store/walletStore';
 import { useStellarWallet } from '../hooks/useStellarWallet';
@@ -9,6 +10,7 @@ import EmptyState from '../components/EmptyState';
 import { truncatePublicKey } from '../utils/validation';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<any>();
   const { profile, logout } = useUserStore();
   const { isConnected, publicKey } = useWalletStore();
   const { disconnectWallet } = useStellarWallet();
@@ -116,7 +118,7 @@ export default function ProfileScreen() {
           Settings
         </Text>
 
-        <SettingsRow label="Edit Profile" onPress={() => {}} />
+        <SettingsRow label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
         <SettingsRow label="Notification Preferences" onPress={() => {}} />
         <SettingsRow label="Language" value="English" onPress={() => {}} />
         <SettingsRow label="About EcoTask" onPress={() => {}} />
