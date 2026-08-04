@@ -28,7 +28,7 @@ function timeAgo(dateStr: string): string {
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
-  const { user } = useUserStore();
+  const { profile } = useUserStore();
   const activities = useActivityStore(s => s.activities);
 
   return (
@@ -44,7 +44,7 @@ export default function HomeScreen() {
           <Text
             style={{ color: colors.text, fontSize: 28, fontWeight: 'bold' }}
           >
-            Hello, {user?.name || 'Eco Warrior'}!
+            Hello, {profile?.name || 'Eco Warrior'}!
           </Text>
         </TouchableOpacity>
         <Text
@@ -68,9 +68,9 @@ export default function HomeScreen() {
           }}
         >
           <ImpactStats
-            trees={user?.stats?.treesPlanted || 0}
-            plastic={user?.stats?.plasticCollected || 0}
-            co2={user?.stats?.co2Reduced || 0}
+            trees={profile?.stats?.treesPlanted || 0}
+            plastic={profile?.stats?.plasticCollected || 0}
+            co2={profile?.stats?.co2Reduced || 0}
           />
         </View>
 

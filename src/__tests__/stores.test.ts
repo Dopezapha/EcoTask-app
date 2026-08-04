@@ -173,13 +173,15 @@ describe('userStore', () => {
     expect(state.token).toBeNull();
   });
 
-  it('sets profile', () => {
+  it('sets profile with stats', () => {
     useUserStore.getState().setProfile({
       id: 'u1',
       wallet: 'GCXXYZ',
       name: 'Alice',
+      stats: { treesPlanted: 5, plasticCollected: 12, co2Reduced: 30 },
     });
     expect(useUserStore.getState().profile?.name).toBe('Alice');
+    expect(useUserStore.getState().profile?.stats.treesPlanted).toBe(5);
   });
 
   it('sets token', () => {
@@ -189,7 +191,12 @@ describe('userStore', () => {
 
   it('logs out and clears profile and token', () => {
     const { setProfile, setToken, logout } = useUserStore.getState();
-    setProfile({ id: 'u1', wallet: 'GCXXYZ', name: 'Alice' });
+    setProfile({
+      id: 'u1',
+      wallet: 'GCXXYZ',
+      name: 'Alice',
+      stats: { treesPlanted: 0, plasticCollected: 0, co2Reduced: 0 },
+    });
     setToken('jwt-abc');
     logout();
     const state = useUserStore.getState();

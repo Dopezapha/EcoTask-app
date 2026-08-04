@@ -1,11 +1,18 @@
 import { create } from 'zustand';
 
-interface UserProfile {
+export interface UserStats {
+  treesPlanted: number;
+  plasticCollected: number;
+  co2Reduced: number;
+}
+
+export interface UserProfile {
   id: string;
   wallet: string;
   name?: string;
   bio?: string;
   avatarUrl?: string;
+  stats: UserStats;
 }
 
 interface UserState {
