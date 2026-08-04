@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useWalletStore } from '../store/walletStore';
 import { useStellarWallet } from '../hooks/useStellarWallet';
 import { colors, spacing } from '../utils/theme';
 import EmptyState from '../components/EmptyState';
 import Skeleton from '../components/LoadingSkeleton';
+import TransactionHistory from '../components/TransactionHistory';
 
 export default function WalletScreen() {
   const { balance, ecoBalance, publicKey, isConnected } = useWalletStore();
@@ -51,7 +52,7 @@ export default function WalletScreen() {
   }
 
   return (
-    <View
+    <ScrollView
       style={{
         flex: 1,
         backgroundColor: colors.background,
@@ -123,10 +124,13 @@ export default function WalletScreen() {
         )}
       </View>
 
+      {publicKey && <TransactionHistory publicKey={publicKey} />}
+
       <TouchableOpacity
         onPress={disconnectWallet}
         style={{
           marginTop: spacing.xl,
+          marginBottom: spacing.xl,
           padding: spacing.md,
           backgroundColor: colors.error,
           borderRadius: 12,
@@ -135,6 +139,6 @@ export default function WalletScreen() {
       >
         <Text style={{ color: '#FFF', fontWeight: '600' }}>Disconnect</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
