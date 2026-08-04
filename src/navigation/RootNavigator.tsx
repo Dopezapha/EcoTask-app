@@ -5,11 +5,15 @@ import { useWalletStore } from '../store/walletStore';
 import MainTabNavigator from './MainTabNavigator';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import TaskDetailScreen from '../screens/TaskDetailScreen';
+import SubmitProofScreen from '../screens/SubmitProofScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
   Main: undefined;
   Profile: undefined;
+  TaskDetail: { taskId: string };
+  SubmitProof: { taskId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -26,6 +30,16 @@ export default function RootNavigator() {
             <Stack.Screen
               name="Profile"
               component={ProfileScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
+              name="TaskDetail"
+              component={TaskDetailScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
+              name="SubmitProof"
+              component={SubmitProofScreen}
               options={{ presentation: 'card' }}
             />
           </>

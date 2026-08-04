@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import TaskListScreen from '../screens/TaskListScreen';
+import TaskStackNavigator from './TaskStackNavigator';
 import WalletScreen from '../screens/WalletScreen';
 import SubmitPlaceholderScreen from '../screens/SubmitPlaceholderScreen';
 import TabBarIcon from '../components/TabBarIcon';
@@ -36,7 +36,7 @@ export default function MainTabNavigator() {
       />
       <Tab.Screen
         name="Tasks"
-        component={TaskListScreen}
+        component={TaskStackNavigator}
         options={{
           tabBarIcon: ({ focused, color }) => (
             <TabBarIcon emoji="🌿" focused={focused} color={color} />
