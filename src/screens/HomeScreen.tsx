@@ -5,8 +5,9 @@ import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
-import { TASK_TYPE_CONFIG } from '../types';
-import { TaskType } from '../types';
+import { useWalletStore } from '../store/walletStore';
+import { TASK_TYPE_CONFIG, TaskType } from '../types';
+import { truncatePublicKey } from '../utils/validation';
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -19,10 +20,22 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { profile } = useUserStore();
   const activities = useActivityStore(s => s.activities);
+  const { publicKey, ecoBalance } = useWalletStore();
+
+  const totalRewards = activities
+    .filter(a => a.status === 'confirmed')
+    .reduce((sum, a) => sum + a.rewardAmount, 0);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -35,9 +48,14 @@ export default function HomeScreen() {
       >
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <Text
+            style={{ color: colors.textSecondary, fontSize: 16 }}
+          >
+            {getGreeting()},
+          </Text>
+          <Text
             style={{ color: colors.text, fontSize: 28, fontWeight: 'bold' }}
           >
-            Hello, {profile?.name || 'Eco Warrior'}!
+            {profile?.name || 'Eco Warrior'}!
           </Text>
         </TouchableOpacity>
         <Text
@@ -66,6 +84,42 @@ export default function HomeScreen() {
             co2={profile?.stats?.co2Reduced || 0}
           />
         </View>
+
+        {ecoBalance && Number(ecoBalance) > 0 && (
+          <View
+            style={{
+              marginTop: spacing.md,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: colors.surface,
+              borderRadius: 12,
+              padding: spacing.md,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+              ECO Balance
+            </Text>
+            <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 18 }}>
+              {ecoBalance} ECO
+            </Text>
+          </View>
+        )}
+
+        {publicKey && (
+          <Text
+            style={{
+              color: colors.textSecondary,
+              fontSize: 11,
+              marginTop: spacing.sm,
+              textAlign: 'right',
+            }}
+          >
+            {truncatePublicKey(publicKey, 4)}
+          </Text>
+        )}
 
         <View style={{ marginTop: spacing.xl }}>
           <Text
