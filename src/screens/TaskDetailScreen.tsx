@@ -4,20 +4,12 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { colors, spacing } from '../utils/theme';
 import { fetchTaskById } from '../services/api';
 import { TaskDetailSkeleton } from '../components/LoadingSkeleton';
+import { TASK_TYPE_CONFIG, TaskType } from '../types';
 
 type TaskDetailRoute = RouteProp<
   { TaskDetail: { taskId: string } },
   'TaskDetail'
 >;
-
-const TYPE_ICONS: Record<string, string> = {
-  TREE_PLANTING: '\u{1F333}',
-  TRASH_COLLECTION: '\u267B\uFE0F',
-  OCEAN_CLEANUP: '\u{1F30A}',
-  GARDENING: '\u{1F331}',
-  EDUCATION: '\u{1F4DA}',
-  OTHER: '\u{1F4CD}',
-};
 
 export default function TaskDetailScreen() {
   const route = useRoute<TaskDetailRoute>();
@@ -83,7 +75,7 @@ export default function TaskDetailScreen() {
         </TouchableOpacity>
 
         <Text style={{ fontSize: 48, marginBottom: spacing.sm }}>
-          {TYPE_ICONS[task.type] || '\u{1F4CD}'}
+          {TASK_TYPE_CONFIG[task.type as TaskType]?.icon || '📍'}
         </Text>
         <Text style={{ color: colors.text, fontSize: 24, fontWeight: 'bold' }}>
           {task.title}

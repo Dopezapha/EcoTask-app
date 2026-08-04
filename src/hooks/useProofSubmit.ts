@@ -1,17 +1,9 @@
 import { useState, useCallback } from 'react';
 import { submitProof } from '../services/api';
 import { MMKV } from 'react-native-mmkv';
+import { PendingProof } from '../types';
 
 const offlineStorage = new MMKV({ id: 'proof-queue' });
-
-interface PendingProof {
-  id: string;
-  taskId: string;
-  photoPath: string;
-  lat?: number;
-  lng?: number;
-  createdAt: string;
-}
 
 export function useProofSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);

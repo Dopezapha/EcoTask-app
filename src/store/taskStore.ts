@@ -1,16 +1,5 @@
 import { create } from 'zustand';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  rewardAmount: number;
-  lat: number;
-  lng: number;
-  status: string;
-  distance?: number;
-}
+import { Task } from '../types';
 
 interface TaskState {
   tasks: Task[];

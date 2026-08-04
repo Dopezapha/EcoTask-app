@@ -5,15 +5,8 @@ import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
-
-const TYPE_ICONS: Record<string, string> = {
-  TREE_PLANTING: '🌳',
-  TRASH_COLLECTION: '♻️',
-  OCEAN_CLEANUP: '🌊',
-  GARDENING: '🌱',
-  EDUCATION: '📚',
-  OTHER: '📍',
-};
+import { TASK_TYPE_CONFIG } from '../types';
+import { TaskType } from '../types';
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -157,7 +150,7 @@ export default function HomeScreen() {
                 }}
               >
                 <Text style={{ fontSize: 24, marginRight: spacing.md }}>
-                  {TYPE_ICONS[a.taskType] || '📍'}
+                  {TASK_TYPE_CONFIG[a.taskType as TaskType]?.icon || '📍'}
                 </Text>
                 <View style={{ flex: 1 }}>
                   <Text

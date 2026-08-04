@@ -1,15 +1,5 @@
 import { create } from 'zustand';
-
-export interface Activity {
-  id: string;
-  taskId: string;
-  taskTitle: string;
-  taskType: string;
-  rewardAmount: number;
-  rewardToken: string;
-  completedAt: string;
-  status: 'confirmed' | 'pending' | 'failed';
-}
+import { Activity } from '../types';
 
 interface ActivityState {
   activities: Activity[];

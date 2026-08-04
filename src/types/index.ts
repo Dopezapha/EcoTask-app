@@ -1,0 +1,72 @@
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  type: TaskType;
+  rewardAmount: number;
+  rewardToken?: string;
+  lat: number;
+  lng: number;
+  status: string;
+  distance?: number;
+  instructions?: string;
+  difficulty?: TaskDifficulty;
+  estimatedMinutes?: number;
+}
+
+export type TaskType =
+  | 'TREE_PLANTING'
+  | 'TRASH_COLLECTION'
+  | 'OCEAN_CLEANUP'
+  | 'GARDENING'
+  | 'EDUCATION'
+  | 'OTHER';
+
+export type TaskDifficulty = 'easy' | 'medium' | 'hard';
+
+export interface UserStats {
+  treesPlanted: number;
+  plasticCollected: number;
+  co2Reduced: number;
+}
+
+export interface UserProfile {
+  id: string;
+  wallet: string;
+  name?: string;
+  bio?: string;
+  avatarUrl?: string;
+  stats: UserStats;
+}
+
+export interface Activity {
+  id: string;
+  taskId: string;
+  taskTitle: string;
+  taskType: TaskType;
+  rewardAmount: number;
+  rewardToken: string;
+  completedAt: string;
+  status: 'confirmed' | 'pending' | 'failed';
+}
+
+export interface PendingProof {
+  id: string;
+  taskId: string;
+  photoPath: string;
+  lat?: number;
+  lng?: number;
+  createdAt: string;
+}
+
+export const TASK_TYPE_CONFIG: Record<
+  TaskType,
+  { icon: string; label: string }
+> = {
+  TREE_PLANTING: { icon: '🌳', label: 'Trees' },
+  TRASH_COLLECTION: { icon: '♻️', label: 'Trash' },
+  OCEAN_CLEANUP: { icon: '🌊', label: 'Ocean' },
+  GARDENING: { icon: '🌱', label: 'Garden' },
+  EDUCATION: { icon: '📚', label: 'Learn' },
+  OTHER: { icon: '📍', label: 'Other' },
+};

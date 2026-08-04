@@ -13,14 +13,15 @@ import { useTaskFeed } from '../hooks/useTaskFeed';
 import TaskCard from '../components/TaskCard';
 import { TaskCardSkeleton } from '../components/LoadingSkeleton';
 import EmptyState from '../components/EmptyState';
+import { TASK_TYPE_CONFIG, TaskType } from '../types';
 
 const TASK_TYPES = [
   { key: '', label: 'All', icon: '🌍' },
-  { key: 'TREE_PLANTING', label: 'Trees', icon: '🌳' },
-  { key: 'TRASH_COLLECTION', label: 'Trash', icon: '♻️' },
-  { key: 'OCEAN_CLEANUP', label: 'Ocean', icon: '🌊' },
-  { key: 'GARDENING', label: 'Garden', icon: '🌱' },
-  { key: 'EDUCATION', label: 'Learn', icon: '📚' },
+  ...Object.entries(TASK_TYPE_CONFIG).map(([key, config]) => ({
+    key,
+    label: config.label,
+    icon: config.icon,
+  })),
 ];
 
 export default function TaskListScreen() {
@@ -146,7 +147,7 @@ export default function TaskListScreen() {
             <TaskCard
               id={item.id}
               title={item.title}
-              type={item.type}
+              type={item.type as TaskType}
               rewardAmount={item.rewardAmount}
               rewardToken={item.rewardToken || 'ECO'}
               distance={item.distance}

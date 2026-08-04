@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
-import { useUserStore, UserStats } from '../store/userStore';
+import { useUserStore } from '../store/userStore';
 import { getAuthChallenge, loginWithWallet, fetchUserProfile } from '../services/api';
+import { UserStats } from '../types';
 
 interface FreighterWindow {
   freighter?: {

@@ -1,25 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { colors, spacing } from '../utils/theme';
+import { TASK_TYPE_CONFIG, TaskType } from '../types';
 
 interface TaskCardProps {
   id: string;
   title: string;
-  type: string;
+  type: TaskType;
   rewardAmount: number;
   rewardToken: string;
   distance?: number;
   onPress: (taskId: string) => void;
 }
-
-const TYPE_ICONS: Record<string, string> = {
-  TREE_PLANTING: '🌳',
-  TRASH_COLLECTION: '♻️',
-  OCEAN_CLEANUP: '🌊',
-  GARDENING: '🌱',
-  EDUCATION: '📚',
-  OTHER: '📍',
-};
 
 export default function TaskCard({
   id,
@@ -45,7 +37,7 @@ export default function TaskCard({
       }}
     >
       <Text style={{ fontSize: 32, marginRight: spacing.md }}>
-        {TYPE_ICONS[type] || '📍'}
+        {TASK_TYPE_CONFIG[type]?.icon || '📍'}
       </Text>
       <View style={{ flex: 1 }}>
         <Text

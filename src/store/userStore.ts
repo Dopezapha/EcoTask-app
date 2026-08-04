@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { MMKV } from 'react-native-mmkv';
+import { UserProfile, UserStats } from '../types';
 
 const storage = new MMKV({ id: 'user-storage' });
 const zustandMMKVStorage = {
@@ -8,21 +9,6 @@ const zustandMMKVStorage = {
   setItem: (name: string, value: string) => storage.set(name, value),
   removeItem: (name: string) => storage.delete(name),
 };
-
-export interface UserStats {
-  treesPlanted: number;
-  plasticCollected: number;
-  co2Reduced: number;
-}
-
-export interface UserProfile {
-  id: string;
-  wallet: string;
-  name?: string;
-  bio?: string;
-  avatarUrl?: string;
-  stats: UserStats;
-}
 
 interface UserState {
   profile: UserProfile | null;
