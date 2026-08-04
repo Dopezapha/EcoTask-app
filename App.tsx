@@ -4,6 +4,7 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import { useProofSubmit } from "./src/hooks/useProofSubmit";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import OfflineBanner from "./src/components/OfflineBanner";
+import { registerForPushNotifications, sendTokenToServer } from "./src/services/notifications";
 
 function AppSync() {
   const { syncPendingProofs } = useProofSubmit();
@@ -15,6 +16,14 @@ function AppSync() {
       }
     });
     return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    registerForPushNotifications().then(token => {
+      if (token) {
+        sendTokenToServer(token);
+      }
+    });
   }, []);
 
   return null;
