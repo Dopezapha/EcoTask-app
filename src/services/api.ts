@@ -37,7 +37,10 @@ export async function loginWithWallet(
   challenge: string,
 ) {
   const res = await api.post('/auth/login', { wallet, signature, challenge });
-  return res.data as { token: string; user: { id: string; name?: string; bio?: string; avatarUrl?: string } };
+  return res.data as {
+    token: string;
+    user: { id: string; name?: string; bio?: string; avatarUrl?: string };
+  };
 }
 
 export async function fetchUserProfile() {
@@ -45,7 +48,11 @@ export async function fetchUserProfile() {
   return res.data;
 }
 
-export async function updateProfile(data: { name?: string; bio?: string; avatarUrl?: string }) {
+export async function updateProfile(data: {
+  name?: string;
+  bio?: string;
+  avatarUrl?: string;
+}) {
   const res = await api.put('/auth/me', data);
   return res.data;
 }

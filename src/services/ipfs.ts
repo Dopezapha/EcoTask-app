@@ -17,6 +17,19 @@ interface IPFSUploadResult {
   size: number;
 }
 
+function getAuthHeaders(): Record<string, string> {
+  if (IPFS_API_KEY && IPFS_SECRET) {
+    return {
+      pinata_api_key: IPFS_API_KEY,
+      pinata_secret_api_key: IPFS_SECRET,
+    };
+  }
+  if (IPFS_API_KEY) {
+    return { Authorization: `Bearer ${IPFS_API_KEY}` };
+  }
+  return {};
+}
+
 export async function pinFile(
   filePath: string,
   fileName: string,
@@ -32,15 +45,16 @@ export async function pinFile(
     name: fileName,
   } as any);
 
-  formData.append('pinataMetadata', JSON.stringify({
-    name: fileName,
-  }));
+  formData.append(
+    'pinataMetadata',
+    JSON.stringify({
+      name: fileName,
+    }),
+  );
 
   const response = await fetch(`${IPFS_API_URL}/pinning/pinFileToIPFS`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${IPFS_API_KEY}`,
-    },
+    headers: getAuthHeaders(),
     body: formData,
   });
 
@@ -70,7 +84,7 @@ export async function pinJSON(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${IPFS_API_KEY}`,
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       pinataContent: content,

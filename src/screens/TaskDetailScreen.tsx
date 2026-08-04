@@ -4,7 +4,12 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { colors, spacing } from '../utils/theme';
 import { fetchTaskById } from '../services/api';
 import { TaskDetailSkeleton } from '../components/LoadingSkeleton';
-import { TASK_TYPE_CONFIG, TaskType, DIFFICULTY_CONFIG, TaskDifficulty } from '../types';
+import {
+  TASK_TYPE_CONFIG,
+  TaskType,
+  DIFFICULTY_CONFIG,
+  TaskDifficulty,
+} from '../types';
 
 type TaskDetailRoute = RouteProp<
   { TaskDetail: { taskId: string } },
@@ -98,16 +103,30 @@ export default function TaskDetailScreen() {
             {task.rewardAmount} {task.rewardToken || 'ECO'}
           </Text>
           <Text style={{ color: colors.textSecondary }}>reward</Text>
-          {task.difficulty && DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty] && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}>
-              <Text style={{ fontSize: 14, marginRight: 4 }}>
-                {DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty].icon}
-              </Text>
-              <Text style={{ color: DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty].color, fontWeight: '500' }}>
-                {DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty].label}
-              </Text>
-            </View>
-          )}
+          {task.difficulty &&
+            DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty] && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginLeft: 'auto',
+                }}
+              >
+                <Text style={{ fontSize: 14, marginRight: 4 }}>
+                  {DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty].icon}
+                </Text>
+                <Text
+                  style={{
+                    color:
+                      DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty]
+                        .color,
+                    fontWeight: '500',
+                  }}
+                >
+                  {DIFFICULTY_CONFIG[task.difficulty as TaskDifficulty].label}
+                </Text>
+              </View>
+            )}
           {task.estimatedMinutes && (
             <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
               ~{task.estimatedMinutes}min

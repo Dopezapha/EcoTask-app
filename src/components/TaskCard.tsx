@@ -1,7 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { colors, spacing } from '../utils/theme';
-import { TASK_TYPE_CONFIG, TaskType, DIFFICULTY_CONFIG, TaskDifficulty } from '../types';
+import {
+  TASK_TYPE_CONFIG,
+  TaskType,
+  DIFFICULTY_CONFIG,
+  TaskDifficulty,
+} from '../types';
 
 interface TaskCardProps {
   id: string;
@@ -52,7 +57,14 @@ export default function TaskCard({
         >
           {title}
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: spacing.sm }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 4,
+            gap: spacing.sm,
+          }}
+        >
           {distance !== undefined && (
             <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
               {distance < 1
@@ -62,8 +74,16 @@ export default function TaskCard({
           )}
           {diffConfig && (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ fontSize: 10, marginRight: 2 }}>{diffConfig.icon}</Text>
-              <Text style={{ color: diffConfig.color, fontSize: 11, fontWeight: '500' }}>
+              <Text style={{ fontSize: 10, marginRight: 2 }}>
+                {diffConfig.icon}
+              </Text>
+              <Text
+                style={{
+                  color: diffConfig.color,
+                  fontSize: 11,
+                  fontWeight: '500',
+                }}
+              >
                 {diffConfig.label}
               </Text>
             </View>

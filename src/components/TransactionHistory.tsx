@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { colors, spacing } from '../utils/theme';
-import { useWalletStore } from '../store/walletStore';
 import Skeleton from './LoadingSkeleton';
 
 interface StellarPayment {
@@ -22,16 +21,24 @@ interface TransactionHistoryProps {
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {
+    return 'just now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {
+    return `${hrs}h ago`;
+  }
   const days = Math.floor(hrs / 24);
   return `${days}d ago`;
 }
 
 function truncateAddress(addr: string): string {
-  if (addr.length <= 10) return addr;
+  if (addr.length <= 10) {
+    return addr;
+  }
   return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 }
 
@@ -65,9 +72,18 @@ export default function TransactionHistory({
   if (loading) {
     return (
       <View style={{ marginTop: spacing.xl }}>
-        <Skeleton height={18} width="40%" style={{ marginBottom: spacing.md }} />
+        <Skeleton
+          height={18}
+          width="40%"
+          style={{ marginBottom: spacing.md }}
+        />
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} height={56} borderRadius={12} style={{ marginBottom: spacing.sm }} />
+          <Skeleton
+            key={i}
+            height={56}
+            borderRadius={12}
+            style={{ marginBottom: spacing.sm }}
+          />
         ))}
       </View>
     );
@@ -78,7 +94,13 @@ export default function TransactionHistory({
       <View style={{ marginTop: spacing.xl, alignItems: 'center' }}>
         <Text style={{ color: colors.error, fontSize: 13 }}>{error}</Text>
         <TouchableOpacity onPress={loadPayments}>
-          <Text style={{ color: colors.primary, fontSize: 13, marginTop: spacing.xs }}>
+          <Text
+            style={{
+              color: colors.primary,
+              fontSize: 13,
+              marginTop: spacing.xs,
+            }}
+          >
             Retry
           </Text>
         </TouchableOpacity>
@@ -122,11 +144,20 @@ export default function TransactionHistory({
               {isSent ? '↗️' : '↙️'}
             </Text>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontWeight: '500', fontSize: 14 }}>
+              <Text
+                style={{ color: colors.text, fontWeight: '500', fontSize: 14 }}
+              >
                 {isSent ? 'Sent' : 'Received'} {payment.asset_code || 'XLM'}
               </Text>
-              <Text style={{ color: colors.textSecondary, fontSize: 11, marginTop: 2 }}>
-                {truncateAddress(isSent ? payment.to : payment.from)} · {timeAgo(payment.created_at)}
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontSize: 11,
+                  marginTop: 2,
+                }}
+              >
+                {truncateAddress(isSent ? payment.to : payment.from)} ·{' '}
+                {timeAgo(payment.created_at)}
               </Text>
             </View>
             <Text
@@ -136,7 +167,8 @@ export default function TransactionHistory({
                 fontSize: 14,
               }}
             >
-              {isSent ? '-' : '+'}{Number(payment.amount).toFixed(2)}
+              {isSent ? '-' : '+'}
+              {Number(payment.amount).toFixed(2)}
             </Text>
           </View>
         );

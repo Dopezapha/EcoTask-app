@@ -1,22 +1,25 @@
-import React, { useEffect } from "react";
-import { StatusBar, AppState, AppStateStatus, View } from "react-native";
-import RootNavigator from "./src/navigation/RootNavigator";
-import { useProofSubmit } from "./src/hooks/useProofSubmit";
-import ErrorBoundary from "./src/components/ErrorBoundary";
-import OfflineBanner from "./src/components/OfflineBanner";
-import { registerForPushNotifications, sendTokenToServer } from "./src/services/notifications";
+import React, { useEffect } from 'react';
+import { StatusBar, AppState, AppStateStatus, View } from 'react-native';
+import RootNavigator from './src/navigation/RootNavigator';
+import { useProofSubmit } from './src/hooks/useProofSubmit';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import OfflineBanner from './src/components/OfflineBanner';
+import {
+  registerForPushNotifications,
+  sendTokenToServer,
+} from './src/services/notifications';
 
 function AppSync() {
   const { syncPendingProofs } = useProofSubmit();
 
   useEffect(() => {
-    const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
-      if (state === "active") {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') {
         syncPendingProofs();
       }
     });
     return () => sub.remove();
-  }, []);
+  }, [syncPendingProofs]);
 
   useEffect(() => {
     registerForPushNotifications().then(token => {

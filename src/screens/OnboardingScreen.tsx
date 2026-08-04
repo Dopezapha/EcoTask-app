@@ -6,8 +6,12 @@ import { useWalletStore } from '../store/walletStore';
 import { colors, spacing } from '../utils/theme';
 
 export default function OnboardingScreen() {
-  const { connectFreighter, createInAppWallet, isConnecting, error: walletError } =
-    useStellarWallet();
+  const {
+    connectFreighter,
+    createInAppWallet,
+    isConnecting,
+    error: walletError,
+  } = useStellarWallet();
   const { authenticate, isAuthenticating, error: authError } = useAuth();
   const { publicKey, isConnected } = useWalletStore();
 
@@ -15,7 +19,7 @@ export default function OnboardingScreen() {
     if (isConnected && publicKey) {
       authenticate(publicKey).catch(() => {});
     }
-  }, [isConnected, publicKey]);
+  }, [isConnected, publicKey, authenticate]);
 
   const error = walletError || authError;
 

@@ -24,7 +24,9 @@ describe('TaskCard', () => {
     const tree = renderer.create(<TaskCard {...defaultProps} />);
     const instance = tree.root;
     const texts = instance.findAllByType('Text');
-    const titleText = texts.find(t => t.props.children === 'Plant trees in the park');
+    const titleText = texts.find(
+      t => t.props.children === 'Plant trees in the park',
+    );
     expect(titleText).toBeTruthy();
   });
 
@@ -37,9 +39,7 @@ describe('TaskCard', () => {
   });
 
   it('displays distance when provided', () => {
-    const tree = renderer.create(
-      <TaskCard {...defaultProps} distance={2.5} />,
-    );
+    const tree = renderer.create(<TaskCard {...defaultProps} distance={2.5} />);
     const instance = tree.root;
     const texts = instance.findAllByType('Text');
     const distText = texts.find(t => t.props.children === '2.5km');
@@ -47,9 +47,7 @@ describe('TaskCard', () => {
   });
 
   it('displays meters for sub-km distances', () => {
-    const tree = renderer.create(
-      <TaskCard {...defaultProps} distance={0.5} />,
-    );
+    const tree = renderer.create(<TaskCard {...defaultProps} distance={0.5} />);
     const instance = tree.root;
     const texts = instance.findAllByType('Text');
     const distText = texts.find(t => t.props.children === '500m');
@@ -162,19 +160,13 @@ describe('RewardBadge', () => {
 
 describe('EmptyState', () => {
   it('renders with required props', () => {
-    const tree = renderer.create(
-      <EmptyState icon="🔍" title="No results" />,
-    );
+    const tree = renderer.create(<EmptyState icon="🔍" title="No results" />);
     expect(tree.toJSON()).toBeTruthy();
   });
 
   it('displays icon, title, and description', () => {
     const tree = renderer.create(
-      <EmptyState
-        icon="📋"
-        title="No tasks"
-        description="Check back later"
-      />,
+      <EmptyState icon="📋" title="No tasks" description="Check back later" />,
     );
     const instance = tree.root;
     const texts = instance.findAllByType('Text');
@@ -190,9 +182,7 @@ describe('EmptyState', () => {
   });
 
   it('renders without description', () => {
-    const tree = renderer.create(
-      <EmptyState icon="🔍" title="Nothing here" />,
-    );
+    const tree = renderer.create(<EmptyState icon="🔍" title="Nothing here" />);
     const json = JSON.stringify(tree.toJSON());
     expect(json).toContain('Nothing here');
     expect(json).not.toContain('No tasks found');

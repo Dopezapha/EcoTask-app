@@ -118,7 +118,10 @@ export default function ProfileScreen() {
           Settings
         </Text>
 
-        <SettingsRow label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
+        <SettingsRow
+          label="Edit Profile"
+          onPress={() => navigation.navigate('EditProfile')}
+        />
         <SettingsRow label="Notification Preferences" onPress={() => {}} />
         <SettingsRow label="Language" value="English" onPress={() => {}} />
         <SettingsRow label="About EcoTask" onPress={() => {}} />

@@ -21,9 +21,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return true;
 }
 
-export async function registerForPushNotifications(): Promise<
-  string | null
-> {
+export async function registerForPushNotifications(): Promise<string | null> {
   try {
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) {
@@ -68,9 +66,7 @@ export const NOTIFICATION_TYPES = {
   NEW_TASK: 'new_task',
 } as const;
 
-export function scheduleLocalNotification(
-  payload: NotificationPayload,
-): void {
+export function scheduleLocalNotification(payload: NotificationPayload): void {
   // In production, use react-native-push-notification
   // or notifee for local notification scheduling
   if (onNotificationCallback) {

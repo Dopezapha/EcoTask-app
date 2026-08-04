@@ -12,18 +12,28 @@ import { truncatePublicKey } from '../utils/validation';
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {
+    return 'just now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {
+    return `${hrs}h ago`;
+  }
   const days = Math.floor(hrs / 24);
   return `${days}d ago`;
 }
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
+  if (hour < 12) {
+    return 'Good morning';
+  }
+  if (hour < 18) {
+    return 'Good afternoon';
+  }
   return 'Good evening';
 }
 
@@ -32,10 +42,6 @@ export default function HomeScreen() {
   const { profile } = useUserStore();
   const activities = useActivityStore(s => s.activities);
   const { publicKey, ecoBalance } = useWalletStore();
-
-  const totalRewards = activities
-    .filter(a => a.status === 'confirmed')
-    .reduce((sum, a) => sum + a.rewardAmount, 0);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -47,9 +53,7 @@ export default function HomeScreen() {
         }}
       >
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Text
-            style={{ color: colors.textSecondary, fontSize: 16 }}
-          >
+          <Text style={{ color: colors.textSecondary, fontSize: 16 }}>
             {getGreeting()},
           </Text>
           <Text
@@ -102,7 +106,13 @@ export default function HomeScreen() {
             <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
               ECO Balance
             </Text>
-            <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: 18 }}>
+            <Text
+              style={{
+                color: colors.primary,
+                fontWeight: 'bold',
+                fontSize: 18,
+              }}
+            >
               {ecoBalance} ECO
             </Text>
           </View>

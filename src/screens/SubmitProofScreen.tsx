@@ -70,7 +70,10 @@ export default function SubmitProofScreen() {
         status: 'confirmed',
       });
       if (result.taskType === 'TREE_PLANTING') {
-        updateStats({ treesPlanted: (useUserStore.getState().profile?.stats?.treesPlanted || 0) + 1 });
+        updateStats({
+          treesPlanted:
+            (useUserStore.getState().profile?.stats?.treesPlanted || 0) + 1,
+        });
       }
     }
   }, [photoUri, taskId, location, submit, addActivity, updateStats]);
