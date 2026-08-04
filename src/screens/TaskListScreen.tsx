@@ -151,6 +151,8 @@ export default function TaskListScreen() {
               rewardAmount={item.rewardAmount}
               rewardToken={item.rewardToken || 'ECO'}
               distance={item.distance}
+              difficulty={item.difficulty}
+              estimatedMinutes={item.estimatedMinutes}
               onPress={handleTaskPress}
             />
           </View>

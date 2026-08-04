@@ -24,6 +24,15 @@ export type TaskType =
 
 export type TaskDifficulty = 'easy' | 'medium' | 'hard';
 
+export const DIFFICULTY_CONFIG: Record<
+  TaskDifficulty,
+  { icon: string; label: string; color: string }
+> = {
+  easy: { icon: '🌱', label: 'Easy', color: '#22C55E' },
+  medium: { icon: '🌿', label: 'Medium', color: '#F59E0B' },
+  hard: { icon: '🏔️', label: 'Hard', color: '#EF4444' },
+};
+
 export interface UserStats {
   treesPlanted: number;
   plasticCollected: number;

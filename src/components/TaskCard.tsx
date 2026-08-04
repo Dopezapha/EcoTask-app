@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { colors, spacing } from '../utils/theme';
-import { TASK_TYPE_CONFIG, TaskType } from '../types';
+import { TASK_TYPE_CONFIG, TaskType, DIFFICULTY_CONFIG, TaskDifficulty } from '../types';
 
 interface TaskCardProps {
   id: string;
@@ -10,6 +10,8 @@ interface TaskCardProps {
   rewardAmount: number;
   rewardToken: string;
   distance?: number;
+  difficulty?: TaskDifficulty;
+  estimatedMinutes?: number;
   onPress: (taskId: string) => void;
 }
 
@@ -20,8 +22,12 @@ export default function TaskCard({
   rewardAmount,
   rewardToken,
   distance,
+  difficulty,
+  estimatedMinutes,
   onPress,
 }: TaskCardProps) {
+  const diffConfig = difficulty ? DIFFICULTY_CONFIG[difficulty] : null;
+
   return (
     <TouchableOpacity
       onPress={() => onPress(id)}
@@ -46,15 +52,28 @@ export default function TaskCard({
         >
           {title}
         </Text>
-        {distance !== undefined && (
-          <Text
-            style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}
-          >
-            {distance < 1
-              ? `${(distance * 1000).toFixed(0)}m`
-              : `${distance.toFixed(1)}km`}
-          </Text>
-        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: spacing.sm }}>
+          {distance !== undefined && (
+            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+              {distance < 1
+                ? `${(distance * 1000).toFixed(0)}m`
+                : `${distance.toFixed(1)}km`}
+            </Text>
+          )}
+          {diffConfig && (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 10, marginRight: 2 }}>{diffConfig.icon}</Text>
+              <Text style={{ color: diffConfig.color, fontSize: 11, fontWeight: '500' }}>
+                {diffConfig.label}
+              </Text>
+            </View>
+          )}
+          {estimatedMinutes !== undefined && (
+            <Text style={{ color: colors.textSecondary, fontSize: 11 }}>
+              ~{estimatedMinutes}min
+            </Text>
+          )}
+        </View>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
         <Text
