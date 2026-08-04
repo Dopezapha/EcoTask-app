@@ -189,6 +189,20 @@ describe('userStore', () => {
     expect(useUserStore.getState().token).toBe('jwt-abc');
   });
 
+  it('updates stats', () => {
+    const { setProfile, updateStats } = useUserStore.getState();
+    setProfile({
+      id: 'u1',
+      wallet: 'GCXXYZ',
+      name: 'Alice',
+      stats: { treesPlanted: 5, plasticCollected: 10, co2Reduced: 20 },
+    });
+    updateStats({ treesPlanted: 8 });
+    const profile = useUserStore.getState().profile;
+    expect(profile?.stats.treesPlanted).toBe(8);
+    expect(profile?.stats.plasticCollected).toBe(10);
+  });
+
   it('logs out and clears profile and token', () => {
     const { setProfile, setToken, logout } = useUserStore.getState();
     setProfile({

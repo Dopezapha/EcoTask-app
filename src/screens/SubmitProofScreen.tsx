@@ -10,6 +10,7 @@ import { colors, spacing } from '../utils/theme';
 import { useLocation } from '../hooks/useLocation';
 import { useProofSubmit } from '../hooks/useProofSubmit';
 import { useActivityStore } from '../store/activityStore';
+import { useUserStore } from '../store/userStore';
 import EmptyState from '../components/EmptyState';
 
 type SubmitProofRoute = RouteProp<
@@ -27,6 +28,7 @@ export default function SubmitProofScreen() {
   const { location, error: locationError } = useLocation();
   const { submit, isSubmitting, progress, error } = useProofSubmit();
   const addActivity = useActivityStore(s => s.addActivity);
+  const updateStats = useUserStore(s => s.updateStats);
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
 
@@ -67,8 +69,11 @@ export default function SubmitProofScreen() {
         completedAt: new Date().toISOString(),
         status: 'confirmed',
       });
+      if (result.taskType === 'TREE_PLANTING') {
+        updateStats({ treesPlanted: (useUserStore.getState().profile?.stats?.treesPlanted || 0) + 1 });
+      }
     }
-  }, [photoUri, taskId, location, submit, addActivity]);
+  }, [photoUri, taskId, location, submit, addActivity, updateStats]);
 
   const progressLabels: Record<string, string> = {
     uploading: 'Uploading proof...',
