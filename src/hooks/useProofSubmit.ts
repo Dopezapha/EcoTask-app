@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { submitProof } from '../services/api';
+import { pinFile, pinJSON } from '../services/ipfs';
 import { PendingProof } from '../types';
+import { buildProofMetadata, proofFileName } from '../utils/proofMetadata';
 import { enqueueProof, loadQueue, saveQueue } from '../services/proofQueue';
 
 export function useProofSubmit() {
@@ -23,6 +25,21 @@ export function useProofSubmit() {
         type: 'image/jpeg',
         name: 'proof.jpg',
       } as any);
+
+      try {
+        const photoResult = await pinFile(photoUri, proofFileName(taskId));
+        formData.append('ipfsPhotoCid', photoResult.cid);
+        const metadataResult = await pinJSON(
+          buildProofMetadata({
+            taskId,
+            photoCid: photoResult.cid,
+            lat,
+            lng,
+          }),
+          proofFileName(taskId, 'json'),
+        );
+        formData.append('ipfsMetadataCid', metadataResult.cid);
+      } catch {}
 
       return await submitProof(formData);
     },

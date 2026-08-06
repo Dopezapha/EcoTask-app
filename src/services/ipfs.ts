@@ -40,7 +40,7 @@ export async function pinFile(
 
   const formData = new FormData();
   formData.append('file', {
-    uri: `file://${filePath}`,
+    uri: filePath.startsWith('file://') ? filePath : `file://${filePath}`,
     type: 'image/jpeg',
     name: fileName,
   } as any);
