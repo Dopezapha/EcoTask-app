@@ -1,5 +1,14 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { MMKV } from 'react-native-mmkv';
 import { Task } from '../types';
+
+const storage = new MMKV({ id: 'task-storage' });
+const zustandMMKVStorage = {
+  getItem: (name: string) => storage.getString(name) ?? null,
+  setItem: (name: string, value: string) => storage.set(name, value),
+  removeItem: (name: string) => storage.delete(name),
+};
 
 interface TaskState {
   tasks: Task[];
@@ -18,19 +27,28 @@ interface TaskState {
   reset: () => void;
 }
 
-export const useTaskStore = create<TaskState>(set => ({
-  tasks: [],
-  selectedTask: null,
-  isLoading: false,
-  error: null,
-  page: 1,
-  hasMore: true,
-  setTasks: tasks => set({ tasks }),
-  appendTasks: tasks => set(s => ({ tasks: [...s.tasks, ...tasks] })),
-  selectTask: task => set({ selectedTask: task }),
-  setLoading: isLoading => set({ isLoading }),
-  setError: error => set({ error }),
-  setPage: page => set({ page }),
-  setHasMore: hasMore => set({ hasMore }),
-  reset: () => set({ tasks: [], page: 1, hasMore: true, error: null }),
-}));
+export const useTaskStore = create<TaskState>()(
+  persist(
+    set => ({
+      tasks: [],
+      selectedTask: null,
+      isLoading: false,
+      error: null,
+      page: 1,
+      hasMore: true,
+      setTasks: tasks => set({ tasks }),
+      appendTasks: tasks => set(s => ({ tasks: [...s.tasks, ...tasks] })),
+      selectTask: task => set({ selectedTask: task }),
+      setLoading: isLoading => set({ isLoading }),
+      setError: error => set({ error }),
+      setPage: page => set({ page }),
+      setHasMore: hasMore => set({ hasMore }),
+      reset: () => set({ tasks: [], page: 1, hasMore: true, error: null }),
+    }),
+    {
+      name: 'task-storage',
+      storage: createJSONStorage(() => zustandMMKVStorage),
+      partialize: state => ({ tasks: state.tasks }),
+    },
+  ),
+);

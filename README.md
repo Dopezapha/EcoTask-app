@@ -16,6 +16,23 @@
 
 </div>
 
+## Table of Contents
+
+- [🌍 Overview](#-overview)
+- [🏗️ Architecture](#️-architecture)
+- [✨ Features](#-features)
+- [🏗️ Tech Stack](#️-tech-stack)
+- [📦 Data Model](#-data-model)
+- [🧠 State Management](#-state-management)
+- [📁 Folder Structure](#-folder-structure)
+- [🚀 Getting Started](#-getting-started)
+- [🧪 Testing](#-testing)
+- [📲 App Flow & Key Workflows](#-app-flow--key-workflows)
+- [🗺️ Roadmap](#️-roadmap)
+- [🤝 Contributing](#-contributing)
+- [📬 Contact](#-contact)
+- [📄 License](#-license)
+
 ---
 
 ## 🌍 Overview
@@ -35,18 +52,18 @@ The app is designed with **low-bandwidth environments** in mind — optimized fo
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| 🔐 **Wallet Integration** | ✅ | Connect via Freighter or create a testnet wallet in-app |
-| 🗂️ **Task Browser** | ✅ | Filter tasks by type, view difficulty and estimated time |
+| 🔐 **Wallet Integration** | ✅ | Connect via Freighter, create a testnet wallet, or import an existing one |
+| 🗂️ **Task Browser** | ✅ | Filter tasks by type, view difficulty and estimated time, sorted by distance |
 | 📸 **Proof Submission** | ✅ | Real camera capture with GPS metadata via Vision Camera |
-| 🔑 **Wallet Authentication** | ✅ | Sign challenges with your Stellar wallet to authenticate |
+| 🔑 **Wallet Authentication** | ✅ | Sign challenges with your Stellar wallet (Freighter or in-app) to authenticate |
 | 💸 **Instant Rewards** | ✅ | Receive ECO tokens after task verification |
-| 📈 **Impact Dashboard** | ✅ | See trees planted, plastic collected, CO₂ offset |
+| 📈 **Impact Dashboard** | ✅ | Track trees planted, plastic collected, CO₂ offset per task type |
 | 💰 **Transaction History** | ✅ | View recent Stellar payments on the wallet screen |
 | 👤 **Profile Management** | ✅ | Edit name and bio, view impact stats |
 | 🌐 **Multi-language** | 🔜 | Designed for localisation (English, Swahili, French, Portuguese) |
-| 📶 **Offline-first** | ✅ | Queue submissions when offline, sync when connected |
+| 📶 **Offline-first** | ✅ | Queue submissions when offline, sync when connected, cache the task feed |
 | 🔔 **Push Notifications** | ✅ | Task reminders, reward confirmations, streak nudges |
-| 🗄️ **Decentralized Storage** | ✅ | IPFS pinning for proof photos and metadata |
+| 🗄️ **Decentralized Storage** | ✅ | IPFS pinning of proof photos and metadata, wired into submissions |
 
 ---
 
@@ -100,40 +117,49 @@ ecotask-app/
 │   │   └── TaskStackNavigator.tsx # Tasks tab stack navigation
 │   │
 │   ├── hooks/                    # Custom React hooks (6 hooks)
-│   │   ├── useStellarWallet.ts   # Wallet connect & balance refresh
+│   │   ├── useStellarWallet.ts   # Wallet connect, import, balance refresh
 │   │   ├── useAuth.ts            # Wallet-based authentication
-│   │   ├── useTaskFeed.ts        # Paginated task fetching
-│   │   ├── useProofSubmit.ts     # Proof upload + offline queue
+│   │   ├── useTaskFeed.ts        # Paginated, location-aware task fetching
+│   │   ├── useProofSubmit.ts     # Proof upload + IPFS pinning + offline queue
 │   │   ├── useLocation.ts        # GPS permission & position
 │   │   └── useNetworkStatus.ts   # Online/offline detection
 │   │
-│   ├── services/                 # External integrations (4 services)
+│   ├── services/                 # External integrations (6 services)
 │   │   ├── api.ts                # Axios client with auth + endpoints
-│   │   ├── stellar.ts            # Stellar SDK: balance, tokens, accounts
+│   │   ├── stellar.ts            # Stellar SDK: balance, tokens, signing
 │   │   ├── ipfs.ts               # IPFS pinning via Pinata API
-│   │   └── notifications.ts      # Push notification registration
+│   │   ├── notifications.ts      # Push notification registration
+│   │   ├── proofQueue.ts         # Persistent offline proof queue
+│   │   └── walletVault.ts        # Per-account in-app secret key storage
 │   │
 │   ├── store/                    # Zustand global state (4 stores)
 │   │   ├── walletStore.ts        # Wallet state (MMKV persisted)
-│   │   ├── taskStore.ts          # Task list & pagination
+│   │   ├── taskStore.ts          # Task list & pagination (MMKV cached)
 │   │   ├── userStore.ts          # Profile & auth (MMKV persisted)
-│   │   └── activityStore.ts      # Recent activity feed
+│   │   └── activityStore.ts      # Recent activity feed (MMKV persisted)
 │   │
 │   ├── types/                    # Shared TypeScript types
-│   │   └── index.ts              # Task, UserProfile, Activity, etc.
+│   │   └── index.ts              # Task, UserProfile, Activity, impact config
 │   │
-│   ├── utils/                    # Helper functions
+│   ├── utils/                    # Helper functions (6 utilities)
 │   │   ├── theme.ts              # Dark color palette & spacing
 │   │   ├── formatTokens.ts       # Token amount formatting
-│   │   ├── geoUtils.ts           # Haversine distance, radius checks
-│   │   └── validation.ts         # Public key & email validation
+│   │   ├── geoUtils.ts           # Haversine distance, radius checks, sort
+│   │   ├── validation.ts         # Public key & email validation
+│   │   ├── impact.ts             # Per-task-type environmental impact
+│   │   └── proofMetadata.ts      # IPFS proof metadata builder
 │   │
-│   └── __tests__/                # Tests (54 tests across 5 files)
-│       ├── stores.test.ts        # Wallet, task, user store tests
+│   └── __tests__/                # Tests (86 tests across 10 files)
+│       ├── stores.test.ts        # Wallet, task, user, activity store tests
 │       ├── components.test.tsx   # Component rendering tests
 │       ├── formatTokens.test.ts  # Token formatting tests
-│       ├── geoUtils.test.ts      # Geolocation utility tests
-│       └── validation.test.ts    # Validation utility tests
+│       ├── geoUtils.test.ts      # Geolocation & distance sorting tests
+│       ├── validation.test.ts    # Validation utility tests
+│       ├── proofQueue.test.ts    # Offline proof queue tests
+│       ├── proofMetadata.test.ts # IPFS metadata builder tests
+│       ├── impact.test.ts        # Impact calculation tests
+│       ├── walletVault.test.ts   # Secret key vault tests
+│       └── signChallenge.test.ts # Stellar challenge signing tests
 │
 ├── .github/                      # CI/CD & templates
 ├── .env.example                  # Environment variable template
@@ -203,7 +229,7 @@ FCM_SERVER_KEY=your_fcm_key
 ## 🧪 Testing
 
 ```bash
-# Run unit tests (54 tests)
+# Run unit tests (86 tests)
 npm test
 
 # Run with coverage
@@ -215,11 +241,12 @@ npm run test:integration
 
 ### Test Coverage
 
-| Category | Tests | Coverage |
-|----------|-------|----------|
-| Store logic | 14 | walletStore, taskStore, userStore |
+| Category | Tests | Files |
+|----------|-------|-------|
+| Store logic | 19 | walletStore, taskStore, userStore, activityStore |
 | Component rendering | 19 | TaskCard, ImpactStats, RewardBadge, EmptyState |
-| Utility functions | 21 | formatTokens, geoUtils, validation |
+| Utility functions | 34 | formatTokens, geoUtils, validation, impact, proofMetadata |
+| Service logic | 14 | proofQueue, walletVault, signChallenge |
 
 ---
 
@@ -259,17 +286,20 @@ EcoTask is in early alpha. Here's what we're building and in what order:
 ### Now (v0.2 — current)
 - ✅ Wallet connection (Freighter + in-app testnet wallets)
 - ✅ Wallet-based authentication
+- ✅ In-app wallet import, secret key backup & challenge signing
 - ✅ Real camera proof capture with GPS
 - ✅ Task browsing, filtering, and detail view
+- ✅ Location-aware task discovery sorted by distance
 - ✅ Offline proof queue & sync
-- ✅ Impact dashboard & activity feed
+- ✅ Offline task feed caching
+- ✅ IPFS proof pinning in the submission flow
+- ✅ Persistent activity feed & impact dashboard
 - ✅ Transaction history (Stellar Horizon)
 
 ### Next (v0.3)
 - 🔜 **Backend verification engine** — photo + GPS proof validation
 - 🔜 **ECO reward payouts** via Stellar smart contracts
 - 🔜 **Lobstr & xBull wallet support**
-- 🔜 **IPFS proof storage** wired into the submission flow
 - 🔜 **Push notifications** for reward confirmations & new tasks
 
 ### Later (v0.4+)
