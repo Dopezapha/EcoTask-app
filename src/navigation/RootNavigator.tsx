@@ -8,6 +8,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import SubmitProofScreen from '../screens/SubmitProofScreen';
+import { SubmitProofParams } from '../types';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -15,7 +16,7 @@ export type RootStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   TaskDetail: { taskId: string };
-  SubmitProof: { taskId: string };
+  SubmitProof: SubmitProofParams;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

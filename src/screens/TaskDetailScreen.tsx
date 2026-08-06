@@ -163,7 +163,15 @@ export default function TaskDetailScreen() {
         )}
 
         <TouchableOpacity
-          onPress={() => navigation.navigate('SubmitProof', { taskId })}
+          onPress={() =>
+            navigation.navigate('SubmitProof', {
+              taskId,
+              taskTitle: task.title,
+              taskType: task.type,
+              rewardAmount: task.rewardAmount,
+              rewardToken: task.rewardToken || 'ECO',
+            })
+          }
           style={{
             marginTop: spacing.xl,
             padding: spacing.md,

@@ -2,6 +2,7 @@ import './__mocks__/setup';
 import { useWalletStore } from '../store/walletStore';
 import { useTaskStore } from '../store/taskStore';
 import { useUserStore } from '../store/userStore';
+import { useActivityStore } from '../store/activityStore';
 
 describe('walletStore', () => {
   beforeEach(() => {
@@ -166,7 +167,6 @@ describe('userStore', () => {
   beforeEach(() => {
     useUserStore.setState({ profile: null, token: null });
   });
-
   it('starts with no profile or token', () => {
     const state = useUserStore.getState();
     expect(state.profile).toBeNull();
@@ -216,5 +216,74 @@ describe('userStore', () => {
     const state = useUserStore.getState();
     expect(state.profile).toBeNull();
     expect(state.token).toBeNull();
+  });
+});
+
+describe('activityStore', () => {
+  beforeEach(() => {
+    useActivityStore.setState({ activities: [] });
+  });
+
+  it('starts with an empty feed', () => {
+    expect(useActivityStore.getState().activities).toEqual([]);
+  });
+
+  it('adds activities newest-first', () => {
+    const { addActivity } = useActivityStore.getState();
+    addActivity({
+      id: '1',
+      taskId: 't1',
+      taskTitle: 'Plant tree',
+      taskType: 'TREE_PLANTING',
+      rewardAmount: 10,
+      rewardToken: 'ECO',
+      completedAt: '2026-01-01',
+      status: 'confirmed',
+    });
+    addActivity({
+      id: '2',
+      taskId: 't2',
+      taskTitle: 'Collect trash',
+      taskType: 'TRASH_COLLECTION',
+      rewardAmount: 5,
+      rewardToken: 'ECO',
+      completedAt: '2026-01-02',
+      status: 'pending',
+    });
+    const activities = useActivityStore.getState().activities;
+    expect(activities).toHaveLength(2);
+    expect(activities[0].id).toBe('2');
+  });
+
+  it('caps the feed at 20 activities', () => {
+    const { addActivity } = useActivityStore.getState();
+    for (let i = 0; i < 25; i++) {
+      addActivity({
+        id: `a${i}`,
+        taskId: 't',
+        taskTitle: 'Task',
+        taskType: 'OTHER',
+        rewardAmount: 1,
+        rewardToken: 'ECO',
+        completedAt: '2026-01-01',
+        status: 'confirmed',
+      });
+    }
+    expect(useActivityStore.getState().activities).toHaveLength(20);
+  });
+
+  it('clears the feed', () => {
+    useActivityStore.getState().addActivity({
+      id: '1',
+      taskId: 't',
+      taskTitle: 'Task',
+      taskType: 'OTHER',
+      rewardAmount: 1,
+      rewardToken: 'ECO',
+      completedAt: '2026-01-01',
+      status: 'confirmed',
+    });
+    useActivityStore.getState().clearActivities();
+    expect(useActivityStore.getState().activities).toEqual([]);
   });
 });

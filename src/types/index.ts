@@ -68,6 +68,14 @@ export interface PendingProof {
   createdAt: string;
 }
 
+export interface SubmitProofParams {
+  taskId: string;
+  taskTitle?: string;
+  taskType?: TaskType;
+  rewardAmount?: number;
+  rewardToken?: string;
+}
+
 export const TASK_TYPE_CONFIG: Record<
   TaskType,
   { icon: string; label: string }
@@ -78,4 +86,19 @@ export const TASK_TYPE_CONFIG: Record<
   GARDENING: { icon: '🌱', label: 'Garden' },
   EDUCATION: { icon: '📚', label: 'Learn' },
   OTHER: { icon: '📍', label: 'Other' },
+};
+
+export interface ImpactContribution {
+  treesPlanted?: number;
+  plasticCollected?: number;
+  co2Reduced?: number;
+}
+
+export const IMPACT_BY_TASK_TYPE: Record<TaskType, ImpactContribution> = {
+  TREE_PLANTING: { treesPlanted: 1, co2Reduced: 2 },
+  TRASH_COLLECTION: { plasticCollected: 2, co2Reduced: 1 },
+  OCEAN_CLEANUP: { plasticCollected: 3, co2Reduced: 1 },
+  GARDENING: { co2Reduced: 2 },
+  EDUCATION: { co2Reduced: 1 },
+  OTHER: { co2Reduced: 1 },
 };

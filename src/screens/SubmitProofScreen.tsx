@@ -11,10 +11,12 @@ import { useLocation } from '../hooks/useLocation';
 import { useProofSubmit } from '../hooks/useProofSubmit';
 import { useActivityStore } from '../store/activityStore';
 import { useUserStore } from '../store/userStore';
+import { computeImpact } from '../utils/impact';
+import { SubmitProofParams } from '../types';
 import EmptyState from '../components/EmptyState';
 
 type SubmitProofRoute = RouteProp<
-  { SubmitProof: { taskId: string } },
+  { SubmitProof: SubmitProofParams },
   'SubmitProof'
 >;
 
@@ -69,14 +71,33 @@ export default function SubmitProofScreen() {
         completedAt: new Date().toISOString(),
         status: 'confirmed',
       });
-      if (result.taskType === 'TREE_PLANTING') {
-        updateStats({
-          treesPlanted:
-            (useUserStore.getState().profile?.stats?.treesPlanted || 0) + 1,
-        });
+      const stats = useUserStore.getState().profile?.stats;
+      if (stats) {
+        const impact = computeImpact(result.taskType || 'OTHER');
+        updateStats(impact);
       }
+    } else if (error) {
+      addActivity({
+        id: Date.now().toString(),
+        taskId,
+        taskTitle: route.params.taskTitle || 'Task queued offline',
+        taskType: route.params.taskType || 'OTHER',
+        rewardAmount: 0,
+        rewardToken: route.params.rewardToken || 'ECO',
+        completedAt: new Date().toISOString(),
+        status: 'pending',
+      });
     }
-  }, [photoUri, taskId, location, submit, addActivity, updateStats]);
+  }, [
+    photoUri,
+    taskId,
+    location,
+    submit,
+    addActivity,
+    updateStats,
+    error,
+    route.params,
+  ]);
 
   const progressLabels: Record<string, string> = {
     uploading: 'Uploading proof...',

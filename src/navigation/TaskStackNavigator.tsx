@@ -3,11 +3,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TaskListScreen from '../screens/TaskListScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import SubmitProofScreen from '../screens/SubmitProofScreen';
+import { SubmitProofParams } from '../types';
 
 export type TaskStackParamList = {
   TaskList: undefined;
   TaskDetail: { taskId: string };
-  SubmitProof: { taskId: string };
+  SubmitProof: SubmitProofParams;
 };
 
 const Stack = createNativeStackNavigator<TaskStackParamList>();
