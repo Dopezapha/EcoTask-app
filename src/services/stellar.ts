@@ -1,4 +1,10 @@
-import { Keypair, Networks, Server, StrKey } from '@stellar/stellar-sdk';
+import {
+  Keypair,
+  Networks,
+  Horizon,
+  StrKey,
+  TransactionBuilder,
+} from '@stellar/stellar-sdk';
 import Config from 'react-native-config';
 
 const NETWORK =
@@ -8,7 +14,7 @@ const HORIZON_URL =
     ? 'https://horizon-testnet.stellar.org'
     : 'https://horizon.stellar.org';
 
-const server = new Server(HORIZON_URL);
+const server = new Horizon.Server(HORIZON_URL);
 
 export async function getBalance(publicKey: string): Promise<string> {
   try {
@@ -57,4 +63,22 @@ export function isValidPublicKey(key: string): boolean {
   return StrKey.isValidEd25519PublicKey(key);
 }
 
-export { Keypair, Networks, Server };
+export function isValidSecretKey(key: string): boolean {
+  return StrKey.isValidEd25519SecretSeed(key);
+}
+
+export function getPublicKeyFromSecret(secretKey: string): string {
+  return Keypair.fromSecret(secretKey).publicKey();
+}
+
+export function signChallengeXDR(
+  challengeXDR: string,
+  secretKey: string,
+): string {
+  const keypair = Keypair.fromSecret(secretKey);
+  const transaction = TransactionBuilder.fromXDR(challengeXDR, NETWORK);
+  transaction.sign(keypair);
+  return transaction.toXDR();
+}
+
+export { Keypair, Networks, Horizon };

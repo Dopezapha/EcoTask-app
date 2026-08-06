@@ -6,6 +6,8 @@ import {
   loginWithWallet,
   fetchUserProfile,
 } from '../services/api';
+import { getInAppSecret } from '../services/walletVault';
+import { signChallengeXDR } from '../services/stellar';
 import { UserStats } from '../types';
 
 interface FreighterWindow {
@@ -34,7 +36,7 @@ export function useAuth() {
         if (freighter?.signTransaction) {
           signature = await freighter.signTransaction(challenge);
         } else {
-          signature = await signWithKeypair(challenge);
+          signature = await signWithKeypair(challenge, publicKey);
         }
 
         const { token, user } = await loginWithWallet(
@@ -94,10 +96,21 @@ export function useAuth() {
   return { authenticate, syncProfile, isAuthenticating, error, logout };
 }
 
-async function signWithKeypair(_challenge: string): Promise<string> {
-  // For in-app testnet wallets, store the secret key in secure storage
-  // and sign the challenge server-side. This is a simplified fallback.
-  throw new Error(
-    'In-app wallet signing not yet supported. Please use Freighter.',
-  );
+async function signWithKeypair(
+  challenge: string,
+  publicKey: string,
+): Promise<string> {
+  const secretKey = getInAppSecret(publicKey);
+  if (!secretKey) {
+    throw new Error(
+      'No in-app wallet found for this account. Create or import a wallet first.',
+    );
+  }
+  try {
+    return signChallengeXDR(challenge, secretKey);
+  } catch {
+    throw new Error(
+      'Could not sign the auth challenge. Make sure your wallet matches the Stellar network.',
+    );
+  }
 }
