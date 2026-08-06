@@ -1,6 +1,8 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useTaskStore } from '../store/taskStore';
 import { fetchTasks } from '../services/api';
+import { Task } from '../types';
+import { enrichTasksWithDistance } from '../utils/geoUtils';
 
 interface UseTaskFeedOptions {
   type?: string;
@@ -24,20 +26,41 @@ export function useTaskFeed(options: UseTaskFeedOptions = {}) {
     setHasMore,
   } = useTaskStore();
 
+  const { type, lat, lng, radius } = options;
+  const query = useMemo(
+    () => ({ type, lat, lng, radius }),
+    [type, lat, lng, radius],
+  );
+
   const loadTasks = useCallback(
     async (pageNum: number = 1) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await fetchTasks({
-          page: pageNum,
-          limit: 20,
-          ...options,
-        });
+        const params: Record<string, any> = { page: pageNum, limit: 20 };
+        if (query.type) {
+          params.type = query.type;
+        }
+        if (query.lat !== undefined && query.lng !== undefined) {
+          params.lat = query.lat;
+          params.lng = query.lng;
+          if (query.radius !== undefined) {
+            params.radius = query.radius;
+          }
+        }
+
+        const result = await fetchTasks(params);
+
+        const withLocation = query.lat !== undefined && query.lng !== undefined;
+        const normalize = (list: Task[]) =>
+          withLocation && query.lat !== undefined && query.lng !== undefined
+            ? enrichTasksWithDistance(list, query.lat, query.lng)
+            : list;
+
         if (pageNum === 1) {
-          setTasks(result.tasks);
+          setTasks(normalize(result.tasks));
         } else {
-          appendTasks(result.tasks);
+          appendTasks(normalize(result.tasks));
         }
         setPage(pageNum);
         setHasMore(pageNum < result.totalPages);
@@ -47,7 +70,7 @@ export function useTaskFeed(options: UseTaskFeedOptions = {}) {
         setLoading(false);
       }
     },
-    [options, setTasks, appendTasks, setLoading, setError, setPage, setHasMore],
+    [query, setTasks, appendTasks, setLoading, setError, setPage, setHasMore],
   );
 
   const refresh = useCallback(() => loadTasks(1), [loadTasks]);

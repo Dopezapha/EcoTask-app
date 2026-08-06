@@ -10,6 +10,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing } from '../utils/theme';
 import { useTaskFeed } from '../hooks/useTaskFeed';
+import { useLocation } from '../hooks/useLocation';
 import TaskCard from '../components/TaskCard';
 import { TaskCardSkeleton } from '../components/LoadingSkeleton';
 import EmptyState from '../components/EmptyState';
@@ -27,9 +28,11 @@ const TASK_TYPES = [
 export default function TaskListScreen() {
   const navigation = useNavigation<any>();
   const [activeType, setActiveType] = useState('');
-  const { tasks, isLoading, error, refresh, loadMore } = useTaskFeed(
-    activeType ? { type: activeType } : {},
-  );
+  const { location } = useLocation();
+  const { tasks, isLoading, error, refresh, loadMore } = useTaskFeed({
+    ...(activeType ? { type: activeType } : {}),
+    ...(location ? { lat: location.lat, lng: location.lng, radius: 50 } : {}),
+  });
 
   const handleTaskPress = useCallback(
     (taskId: string) => {

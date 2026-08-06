@@ -35,3 +35,33 @@ export function isWithinRadius(
 ): boolean {
   return haversineDistance(userLat, userLng, targetLat, targetLng) <= radiusKm;
 }
+
+export function enrichTasksWithDistance(
+  tasks: Array<{
+    lat?: number;
+    lng?: number;
+    distance?: number;
+    [key: string]: unknown;
+  }>,
+  userLat: number,
+  userLng: number,
+) {
+  return tasks
+    .map(task => {
+      if (
+        task.distance !== undefined ||
+        task.lat === undefined ||
+        task.lng === undefined
+      ) {
+        return task;
+      }
+      return {
+        ...task,
+        distance: haversineDistance(userLat, userLng, task.lat, task.lng),
+      };
+    })
+    .sort(
+      (a, b) =>
+        (a.distance ?? Number.MAX_VALUE) - (b.distance ?? Number.MAX_VALUE),
+    );
+}
