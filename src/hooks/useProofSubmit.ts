@@ -1,9 +1,7 @@
 import { useState, useCallback } from 'react';
 import { submitProof } from '../services/api';
-import { MMKV } from 'react-native-mmkv';
 import { PendingProof } from '../types';
-
-const offlineStorage = new MMKV({ id: 'proof-queue' });
+import { enqueueProof, loadQueue, saveQueue } from '../services/proofQueue';
 
 export function useProofSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,13 +10,24 @@ export function useProofSubmit() {
   >('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const saveOffline = useCallback((proof: PendingProof) => {
-    const existing = JSON.parse(
-      offlineStorage.getString('pending_proofs') || '[]',
-    );
-    existing.push(proof);
-    offlineStorage.set('pending_proofs', JSON.stringify(existing));
-  }, []);
+  const submitProofAttempt = useCallback(
+    async (taskId: string, photoUri: string, lat?: number, lng?: number) => {
+      const formData = new FormData();
+      formData.append('taskId', taskId);
+      if (lat !== undefined && lng !== undefined) {
+        formData.append('lat', String(lat));
+        formData.append('lng', String(lng));
+      }
+      formData.append('photos', {
+        uri: photoUri,
+        type: 'image/jpeg',
+        name: 'proof.jpg',
+      } as any);
+
+      return await submitProof(formData);
+    },
+    [],
+  );
 
   const submit = useCallback(
     async (taskId: string, photoUri: string, lat?: number, lng?: number) => {
@@ -27,25 +36,13 @@ export function useProofSubmit() {
       setError(null);
 
       try {
-        const formData = new FormData();
-        formData.append('taskId', taskId);
-        if (lat !== undefined && lng !== undefined) {
-          formData.append('lat', String(lat));
-          formData.append('lng', String(lng));
-        }
-        formData.append('photos', {
-          uri: photoUri,
-          type: 'image/jpeg',
-          name: 'proof.jpg',
-        } as any);
-
         setProgress('verifying');
-        const result = await submitProof(formData);
+        const result = await submitProofAttempt(taskId, photoUri, lat, lng);
         setProgress('confirmed');
         return result;
       } catch (err: any) {
-        saveOffline({
-          id: Date.now().toString(),
+        enqueueProof({
+          id: `${Date.now()}`,
           taskId,
           photoPath: photoUri,
           lat,
@@ -54,17 +51,16 @@ export function useProofSubmit() {
         });
         setError(err.message || 'Upload failed, saved for later');
         setProgress('failed');
+        return undefined;
       } finally {
         setIsSubmitting(false);
       }
     },
-    [saveOffline],
+    [submitProofAttempt],
   );
 
   const syncPendingProofs = useCallback(async () => {
-    const pending = JSON.parse(
-      offlineStorage.getString('pending_proofs') || '[]',
-    );
+    const pending = loadQueue();
     if (pending.length === 0) {
       return;
     }
@@ -72,13 +68,18 @@ export function useProofSubmit() {
     const remaining: PendingProof[] = [];
     for (const proof of pending) {
       try {
-        await submit(proof.taskId, proof.photoPath, proof.lat, proof.lng);
+        await submitProofAttempt(
+          proof.taskId,
+          proof.photoPath,
+          proof.lat,
+          proof.lng,
+        );
       } catch {
         remaining.push(proof);
       }
     }
-    offlineStorage.set('pending_proofs', JSON.stringify(remaining));
-  }, [submit]);
+    saveQueue(remaining);
+  }, [submitProofAttempt]);
 
   return { submit, syncPendingProofs, isSubmitting, progress, error };
 }
