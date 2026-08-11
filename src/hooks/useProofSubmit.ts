@@ -3,7 +3,12 @@ import { submitProof } from '../services/api';
 import { pinFile, pinJSON } from '../services/ipfs';
 import { PendingProof } from '../types';
 import { buildProofMetadata, proofFileName } from '../utils/proofMetadata';
-import { enqueueProof, loadQueue, saveQueue } from '../services/proofQueue';
+import {
+  enqueueProof,
+  loadQueue,
+  saveQueue,
+  removeProofsForTask,
+} from '../services/proofQueue';
 
 export function useProofSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -11,6 +16,7 @@ export function useProofSubmit() {
     'idle' | 'uploading' | 'verifying' | 'confirmed' | 'failed'
   >('idle');
   const [error, setError] = useState<string | null>(null);
+  const [pendingCount, setPendingCount] = useState(() => loadQueue().length);
 
   const submitProofAttempt = useCallback(
     async (taskId: string, photoUri: string, lat?: number, lng?: number) => {
@@ -55,6 +61,8 @@ export function useProofSubmit() {
       try {
         setProgress('verifying');
         const result = await submitProofAttempt(taskId, photoUri, lat, lng);
+        removeProofsForTask(taskId);
+        setPendingCount(loadQueue().length);
         setProgress('confirmed');
         return result;
       } catch (err: any) {
@@ -66,6 +74,7 @@ export function useProofSubmit() {
           lng,
           createdAt: new Date().toISOString(),
         });
+        setPendingCount(loadQueue().length);
         setError(err.message || 'Upload failed, saved for later');
         setProgress('failed');
         return undefined;
@@ -96,7 +105,15 @@ export function useProofSubmit() {
       }
     }
     saveQueue(remaining);
+    setPendingCount(remaining.length);
   }, [submitProofAttempt]);
 
-  return { submit, syncPendingProofs, isSubmitting, progress, error };
+  return {
+    submit,
+    syncPendingProofs,
+    pendingCount,
+    isSubmitting,
+    progress,
+    error,
+  };
 }

@@ -3,6 +3,9 @@ import {
   loadQueue,
   saveQueue,
   enqueueProof,
+  removeProof,
+  removeProofsForTask,
+  hasPendingProof,
   clearQueue,
 } from '../services/proofQueue';
 import { PendingProof } from '../types';
@@ -32,10 +35,39 @@ describe('proofQueue', () => {
     expect(queue[0]).toMatchObject({ id: '1', taskId: 't1' });
   });
 
-  it('enqueues multiple proofs', () => {
+  it('enqueues multiple proofs for different tasks', () => {
+    enqueueProof(baseProof);
+    enqueueProof({ ...baseProof, id: '2', taskId: 't2' });
+    expect(loadQueue()).toHaveLength(2);
+  });
+
+  it('deduplicates proofs for the same task', () => {
     enqueueProof(baseProof);
     enqueueProof({ ...baseProof, id: '2' });
-    expect(loadQueue()).toHaveLength(2);
+    expect(loadQueue()).toHaveLength(1);
+  });
+
+  it('reports whether a task already has a queued proof', () => {
+    expect(hasPendingProof('t1')).toBe(false);
+    enqueueProof(baseProof);
+    expect(hasPendingProof('t1')).toBe(true);
+    expect(hasPendingProof('t2')).toBe(false);
+  });
+
+  it('removes a single proof by id', () => {
+    enqueueProof(baseProof);
+    enqueueProof({ ...baseProof, id: '2', taskId: 't2' });
+    const queue = removeProof('1');
+    expect(queue).toHaveLength(1);
+    expect(queue[0].taskId).toBe('t2');
+  });
+
+  it('removes all proofs for a task', () => {
+    enqueueProof(baseProof);
+    enqueueProof({ ...baseProof, id: '2', taskId: 't2' });
+    const queue = removeProofsForTask('t1');
+    expect(queue).toHaveLength(1);
+    expect(queue[0].taskId).toBe('t2');
   });
 
   it('clears the queue', () => {

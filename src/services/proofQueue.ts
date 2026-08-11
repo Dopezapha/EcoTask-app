@@ -23,9 +23,27 @@ export function saveQueue(proofs: PendingProof[]): void {
 
 export function enqueueProof(proof: PendingProof): PendingProof[] {
   const queue = loadQueue();
-  queue.push(proof);
+  if (!queue.some(p => p.taskId === proof.taskId)) {
+    queue.push(proof);
+    saveQueue(queue);
+  }
+  return queue;
+}
+
+export function removeProof(id: string): PendingProof[] {
+  const queue = loadQueue().filter(p => p.id !== id);
   saveQueue(queue);
   return queue;
+}
+
+export function removeProofsForTask(taskId: string): PendingProof[] {
+  const queue = loadQueue().filter(p => p.taskId !== taskId);
+  saveQueue(queue);
+  return queue;
+}
+
+export function hasPendingProof(taskId: string): boolean {
+  return loadQueue().some(p => p.taskId === taskId);
 }
 
 export function clearQueue(): void {

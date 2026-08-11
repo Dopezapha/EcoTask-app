@@ -4,9 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
 import StreakCard from '../components/StreakCard';
+import PendingProofsBanner from '../components/PendingProofsBanner';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
 import { useWalletStore } from '../store/walletStore';
+import { useProofSubmit } from '../hooks/useProofSubmit';
 import { TASK_TYPE_CONFIG, TaskType } from '../types';
 import { truncatePublicKey } from '../utils/validation';
 
@@ -46,6 +48,7 @@ export default function HomeScreen() {
   const bestStreak = useActivityStore(s => s.bestStreak);
   const recomputeStreaks = useActivityStore(s => s.recomputeStreaks);
   const { publicKey, ecoBalance } = useWalletStore();
+  const { pendingCount, isSubmitting, syncPendingProofs } = useProofSubmit();
 
   useEffect(() => {
     recomputeStreaks();
@@ -142,6 +145,12 @@ export default function HomeScreen() {
         <View style={{ marginTop: spacing.md }}>
           <StreakCard streak={streak} bestStreak={bestStreak} />
         </View>
+
+        <PendingProofsBanner
+          count={pendingCount}
+          isSyncing={isSubmitting}
+          onRetry={syncPendingProofs}
+        />
 
         <View style={{ marginTop: spacing.xl }}>
           <Text
