@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing } from '../utils/theme';
@@ -15,6 +16,11 @@ import TaskCard from '../components/TaskCard';
 import { TaskCardSkeleton } from '../components/LoadingSkeleton';
 import EmptyState from '../components/EmptyState';
 import { TASK_TYPE_CONFIG, TaskType } from '../types';
+import {
+  TaskSortMode,
+  filterTasksByQuery,
+  sortTasks,
+} from '../utils/sortTasks';
 
 const TASK_TYPES = [
   { key: '', label: 'All', icon: '🌍' },
@@ -25,14 +31,32 @@ const TASK_TYPES = [
   })),
 ];
 
+const SORT_OPTIONS: { key: TaskSortMode; label: string }[] = [
+  { key: 'distance', label: 'Nearest' },
+  { key: 'reward', label: 'Reward' },
+  { key: 'difficulty', label: 'Easiest' },
+];
+
+const RADIUS_OPTIONS = [10, 25, 50, 100];
+
 export default function TaskListScreen() {
   const navigation = useNavigation<any>();
   const [activeType, setActiveType] = useState('');
+  const [query, setQuery] = useState('');
+  const [sortMode, setSortMode] = useState<TaskSortMode>('distance');
+  const [radiusKm, setRadiusKm] = useState(50);
   const { location } = useLocation();
   const { tasks, isLoading, error, refresh, loadMore } = useTaskFeed({
     ...(activeType ? { type: activeType } : {}),
-    ...(location ? { lat: location.lat, lng: location.lng, radius: 50 } : {}),
+    ...(location
+      ? { lat: location.lat, lng: location.lng, radius: radiusKm }
+      : {}),
   });
+
+  const visibleTasks = useMemo(
+    () => sortTasks(filterTasksByQuery(tasks, query), sortMode),
+    [tasks, query, sortMode],
+  );
 
   const handleTaskPress = useCallback(
     (taskId: string) => {
@@ -107,7 +131,7 @@ export default function TaskListScreen() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: spacing.lg,
-          paddingBottom: spacing.md,
+          paddingBottom: spacing.sm,
         }}
       >
         {TASK_TYPES.map(t => (
@@ -142,8 +166,97 @@ export default function TaskListScreen() {
         ))}
       </ScrollView>
 
+      <View style={{ paddingHorizontal: spacing.lg, marginBottom: spacing.sm }}>
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search tasks…"
+          placeholderTextColor={colors.textSecondary}
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={{
+            backgroundColor: colors.surface,
+            borderRadius: 12,
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.sm,
+            color: colors.text,
+            fontSize: 15,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        />
+      </View>
+
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: spacing.lg,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        {SORT_OPTIONS.map(opt => (
+          <TouchableOpacity
+            key={opt.key}
+            onPress={() => setSortMode(opt.key)}
+            style={{
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.xs,
+              borderRadius: 16,
+              marginRight: spacing.sm,
+              backgroundColor:
+                sortMode === opt.key ? colors.primary : colors.surface,
+              borderWidth: 1,
+              borderColor:
+                sortMode === opt.key ? colors.primary : colors.border,
+            }}
+          >
+            <Text
+              style={{
+                color: sortMode === opt.key ? '#FFF' : colors.textSecondary,
+                fontSize: 13,
+              }}
+            >
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+        <View style={{ flex: 1 }} />
+        {location && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ alignItems: 'center' }}
+          >
+            {RADIUS_OPTIONS.map(km => (
+              <TouchableOpacity
+                key={km}
+                onPress={() => setRadiusKm(km)}
+                style={{
+                  paddingHorizontal: spacing.sm,
+                  paddingVertical: spacing.xs,
+                  borderRadius: 12,
+                  marginLeft: spacing.xs,
+                  backgroundColor:
+                    radiusKm === km ? colors.primaryDark : colors.surface,
+                }}
+              >
+                <Text
+                  style={{
+                    color: radiusKm === km ? '#FFF' : colors.textSecondary,
+                    fontSize: 11,
+                  }}
+                >
+                  {km}km
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+      </View>
+
       <FlatList
-        data={tasks}
+        data={visibleTasks}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <View style={{ paddingHorizontal: spacing.lg }}>
@@ -168,8 +281,12 @@ export default function TaskListScreen() {
           !isLoading ? (
             <EmptyState
               icon="🔍"
-              title="No tasks found"
-              description="Check back later for new climate actions"
+              title={query ? 'No matching tasks' : 'No tasks found'}
+              description={
+                query
+                  ? 'Try a different search or clear the filters'
+                  : 'Check back later for new climate actions'
+              }
             />
           ) : null
         }
