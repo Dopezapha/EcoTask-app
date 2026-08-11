@@ -8,6 +8,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import SubmitProofScreen from '../screens/SubmitProofScreen';
+import SendTokensScreen from '../screens/SendTokensScreen';
 import { SubmitProofParams } from '../types';
 
 export type RootStackParamList = {
@@ -17,6 +18,7 @@ export type RootStackParamList = {
   EditProfile: undefined;
   TaskDetail: { taskId: string };
   SubmitProof: SubmitProofParams;
+  SendTokens: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -48,6 +50,11 @@ export default function RootNavigator() {
             <Stack.Screen
               name="SubmitProof"
               component={SubmitProofScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
+              name="SendTokens"
+              component={SendTokensScreen}
               options={{ presentation: 'card' }}
             />
           </>

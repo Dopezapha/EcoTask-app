@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useWalletStore } from '../store/walletStore';
 import { useStellarWallet } from '../hooks/useStellarWallet';
 import { colors, spacing } from '../utils/theme';
@@ -8,6 +9,7 @@ import Skeleton from '../components/LoadingSkeleton';
 import TransactionHistory from '../components/TransactionHistory';
 
 export default function WalletScreen() {
+  const navigation = useNavigation<any>();
   const { balance, ecoBalance, publicKey, isConnected } = useWalletStore();
   const { disconnectWallet, refreshBalance } = useStellarWallet();
   const [loading, setLoading] = useState(true);
@@ -127,9 +129,22 @@ export default function WalletScreen() {
       {publicKey && <TransactionHistory publicKey={publicKey} />}
 
       <TouchableOpacity
-        onPress={disconnectWallet}
+        onPress={() => navigation.navigate('SendTokens')}
         style={{
           marginTop: spacing.xl,
+          padding: spacing.md,
+          backgroundColor: colors.primary,
+          borderRadius: 12,
+          alignItems: 'center',
+        }}
+      >
+        <Text style={{ color: '#FFF', fontWeight: '600' }}>Send Tokens</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={disconnectWallet}
+        style={{
+          marginTop: spacing.md,
           marginBottom: spacing.xl,
           padding: spacing.md,
           backgroundColor: colors.error,

@@ -4,6 +4,10 @@ import {
   Horizon,
   StrKey,
   TransactionBuilder,
+  Operation,
+  Asset,
+  BASE_FEE,
+  Account,
 } from '@stellar/stellar-sdk';
 import Config from 'react-native-config';
 
@@ -79,6 +83,67 @@ export function signChallengeXDR(
   const transaction = TransactionBuilder.fromXDR(challengeXDR, NETWORK);
   transaction.sign(keypair);
   return transaction.toXDR();
+}
+
+export function isValidAmount(amount: string): boolean {
+  const trimmed = amount.trim();
+  if (!/^\d+(\.\d+)?$/.test(trimmed)) {
+    return false;
+  }
+  return parseFloat(trimmed) > 0;
+}
+
+export async function buildPaymentXDR(
+  senderPublicKey: string,
+  destination: string,
+  amount: string,
+  asset?: { code: string; issuer: string },
+  account?: Account,
+): Promise<string> {
+  const sourceAccount = account || (await server.loadAccount(senderPublicKey));
+  const assetInstance = asset
+    ? new Asset(asset.code, asset.issuer)
+    : Asset.native();
+  const transaction = new TransactionBuilder(sourceAccount, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK,
+  })
+    .addOperation(
+      Operation.payment({
+        destination,
+        asset: assetInstance,
+        amount,
+      }),
+    )
+    .setTimeout(60)
+    .build();
+  return transaction.toXDR();
+}
+
+export function signPaymentXDR(xdr: string, secretKey: string): string {
+  const keypair = Keypair.fromSecret(secretKey);
+  const transaction = TransactionBuilder.fromXDR(xdr, NETWORK);
+  transaction.sign(keypair);
+  return transaction.toXDR();
+}
+
+export async function signAndSubmitPayment(params: {
+  senderPublicKey: string;
+  secretKey: string;
+  destination: string;
+  amount: string;
+  asset?: { code: string; issuer: string };
+}): Promise<{ hash: string }> {
+  const xdr = await buildPaymentXDR(
+    params.senderPublicKey,
+    params.destination,
+    params.amount,
+    params.asset,
+  );
+  const signedXDR = signPaymentXDR(xdr, params.secretKey);
+  const transaction = TransactionBuilder.fromXDR(signedXDR, NETWORK);
+  const result = await server.submitTransaction(transaction);
+  return { hash: result.hash };
 }
 
 export { Keypair, Networks, Horizon };
