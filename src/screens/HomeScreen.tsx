@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
+import StreakCard from '../components/StreakCard';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
 import { useWalletStore } from '../store/walletStore';
@@ -41,7 +42,14 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { profile } = useUserStore();
   const activities = useActivityStore(s => s.activities);
+  const streak = useActivityStore(s => s.streak);
+  const bestStreak = useActivityStore(s => s.bestStreak);
+  const recomputeStreaks = useActivityStore(s => s.recomputeStreaks);
   const { publicKey, ecoBalance } = useWalletStore();
+
+  useEffect(() => {
+    recomputeStreaks();
+  }, [recomputeStreaks]);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -130,6 +138,10 @@ export default function HomeScreen() {
             {truncatePublicKey(publicKey, 4)}
           </Text>
         )}
+
+        <View style={{ marginTop: spacing.md }}>
+          <StreakCard streak={streak} bestStreak={bestStreak} />
+        </View>
 
         <View style={{ marginTop: spacing.xl }}>
           <Text
