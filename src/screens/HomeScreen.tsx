@@ -5,6 +5,7 @@ import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
 import StreakCard from '../components/StreakCard';
 import PendingProofsBanner from '../components/PendingProofsBanner';
+import EarningsSummary from '../components/EarningsSummary';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
 import { useWalletStore } from '../store/walletStore';
@@ -141,6 +142,19 @@ export default function HomeScreen() {
             {truncatePublicKey(publicKey, 4)}
           </Text>
         )}
+
+        <View
+          style={{
+            marginTop: spacing.md,
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: spacing.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          <EarningsSummary activities={activities} />
+        </View>
 
         <View style={{ marginTop: spacing.md }}>
           <StreakCard streak={streak} bestStreak={bestStreak} />
