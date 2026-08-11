@@ -6,6 +6,7 @@ import { useWalletStore } from '../store/walletStore';
 import { useStellarWallet } from '../hooks/useStellarWallet';
 import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
+import AchievementGrid from '../components/AchievementGrid';
 import EmptyState from '../components/EmptyState';
 import { truncatePublicKey } from '../utils/validation';
 
@@ -104,6 +105,26 @@ export default function ProfileScreen() {
           plastic={profile?.stats?.plasticCollected || 0}
           co2={profile?.stats?.co2Reduced || 0}
         />
+      </View>
+
+      <View
+        style={{
+          marginTop: spacing.xl,
+          marginHorizontal: spacing.lg,
+          backgroundColor: colors.surface,
+          borderRadius: 16,
+          padding: spacing.md,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
+        {profile?.stats ? (
+          <AchievementGrid stats={profile.stats} />
+        ) : (
+          <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+            Complete tasks to unlock achievements
+          </Text>
+        )}
       </View>
 
       <View style={{ marginTop: spacing.xl, marginHorizontal: spacing.lg }}>
