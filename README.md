@@ -10,7 +10,7 @@
 [![React Native](https://img.shields.io/badge/React%20Native-0.73-61DAFB?logo=react)](https://reactnative.dev)
 [![Stellar](https://img.shields.io/badge/Stellar-Testnet-7B68EE?logo=stellar)](https://stellar.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Status](https://img.shields.io/badge/Status-v0.2.0--alpha-blue)]()
+[![Status](https://img.shields.io/badge/Status-v0.3.0--alpha-blue)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
@@ -53,12 +53,16 @@ The app is designed with **low-bandwidth environments** in mind — optimized fo
 | Feature | Status | Description |
 |---------|--------|-------------|
 | 🔐 **Wallet Integration** | ✅ | Connect via Freighter, create a testnet wallet, or import an existing one |
-| 🗂️ **Task Browser** | ✅ | Filter tasks by type, view difficulty and estimated time, sorted by distance |
+| 🗂️ **Task Browser** | ✅ | Filter by type, search, sort by distance/reward/difficulty, adjustable radius |
 | 📸 **Proof Submission** | ✅ | Real camera capture with GPS metadata via Vision Camera |
 | 🔑 **Wallet Authentication** | ✅ | Sign challenges with your Stellar wallet (Freighter or in-app) to authenticate |
 | 💸 **Instant Rewards** | ✅ | Receive ECO tokens after task verification |
 | 📈 **Impact Dashboard** | ✅ | Track trees planted, plastic collected, CO₂ offset per task type |
+| 📊 **Earnings Analytics** | ✅ | Total earnings, task-type breakdown and 4-week trend chart |
 | 💰 **Transaction History** | ✅ | View recent Stellar payments on the wallet screen |
+| 💸 **Send Tokens** | ✅ | Sign and submit XLM/ECO payments from in-app wallets |
+| 🔥 **Streak Tracking** | ✅ | Consecutive-day streaks with milestone progress (7/14/30/60/100) |
+| 🏅 **Achievements** | ✅ | Eco-badges unlocked by trees, waste and CO₂ milestones |
 | 👤 **Profile Management** | ✅ | Edit name and bio, view impact stats |
 | 🌐 **Multi-language** | 🔜 | Designed for localisation (English, Swahili, French, Portuguese) |
 | 📶 **Offline-first** | ✅ | Queue submissions when offline, sync when connected, cache the task feed |
@@ -88,21 +92,26 @@ The app is designed with **low-bandwidth environments** in mind — optimized fo
 ```
 ecotask-app/
 ├── src/
-│   ├── screens/                  # App screens (9 screens)
-│   │   ├── HomeScreen.tsx        # Dashboard with impact stats & greeting
-│   │   ├── TaskListScreen.tsx    # Browse & filter tasks by type
+│   ├── screens/                  # App screens (10 screens)
+│   │   ├── HomeScreen.tsx        # Dashboard with impact, earnings & streak
+│   │   ├── TaskListScreen.tsx    # Browse, search, sort & filter tasks by type/radius
 │   │   ├── TaskDetailScreen.tsx  # Task info with difficulty & time
 │   │   ├── SubmitProofScreen.tsx # Real camera + GPS proof submission
-│   │   ├── WalletScreen.tsx      # Balance, history & disconnect
+│   │   ├── WalletScreen.tsx      # Balance, history, send & disconnect
+│   │   ├── SendTokensScreen.tsx  # Sign & send XLM/ECO payments
 │   │   ├── OnboardingScreen.tsx  # Wallet connection & auth
-│   │   ├── ProfileScreen.tsx     # User stats & settings
+│   │   ├── ProfileScreen.tsx     # Stats, achievements & settings
 │   │   ├── EditProfileScreen.tsx # Edit name and bio
 │   │   └── SubmitPlaceholderScreen.tsx
 │   │
-│   ├── components/               # Reusable UI (10 components)
+│   ├── components/               # Reusable UI (14 components)
 │   │   ├── TaskCard.tsx          # Task card with difficulty badge
 │   │   ├── RewardBadge.tsx       # Tiered reward badge (5 tiers)
 │   │   ├── ImpactStats.tsx       # Trees, plastic, CO₂ metrics
+│   │   ├── StreakCard.tsx        # Consecutive-day streak with milestone bar
+│   │   ├── AchievementGrid.tsx   # Eco-badge grid with progress
+│   │   ├── EarningsSummary.tsx   # Earnings total, type breakdown & weekly chart
+│   │   ├── PendingProofsBanner.tsx # Offline proof queue status & retry
 │   │   ├── TransactionHistory.tsx # Stellar payment history
 │   │   ├── ErrorBoundary.tsx     # Class-based error boundary
 │   │   ├── LoadingSkeleton.tsx   # Animated skeleton loaders
@@ -126,30 +135,34 @@ ecotask-app/
 │   │
 │   ├── services/                 # External integrations (6 services)
 │   │   ├── api.ts                # Axios client with auth + endpoints
-│   │   ├── stellar.ts            # Stellar SDK: balance, tokens, signing
+│   │   ├── stellar.ts            # Stellar SDK: balances, signing, payments
 │   │   ├── ipfs.ts               # IPFS pinning via Pinata API
 │   │   ├── notifications.ts      # Push notification registration
-│   │   ├── proofQueue.ts         # Persistent offline proof queue
+│   │   ├── proofQueue.ts         # Persistent offline proof queue (deduped)
 │   │   └── walletVault.ts        # Per-account in-app secret key storage
 │   │
 │   ├── store/                    # Zustand global state (4 stores)
 │   │   ├── walletStore.ts        # Wallet state (MMKV persisted)
 │   │   ├── taskStore.ts          # Task list & pagination (MMKV cached)
 │   │   ├── userStore.ts          # Profile & auth (MMKV persisted)
-│   │   └── activityStore.ts      # Recent activity feed (MMKV persisted)
+│   │   └── activityStore.ts      # Activity feed + streaks (MMKV persisted)
 │   │
 │   ├── types/                    # Shared TypeScript types
 │   │   └── index.ts              # Task, UserProfile, Activity, impact config
 │   │
-│   ├── utils/                    # Helper functions (6 utilities)
+│   ├── utils/                    # Helper functions (10 utilities)
 │   │   ├── theme.ts              # Dark color palette & spacing
 │   │   ├── formatTokens.ts       # Token amount formatting
 │   │   ├── geoUtils.ts           # Haversine distance, radius checks, sort
 │   │   ├── validation.ts         # Public key & email validation
 │   │   ├── impact.ts             # Per-task-type environmental impact
-│   │   └── proofMetadata.ts      # IPFS proof metadata builder
+│   │   ├── proofMetadata.ts      # IPFS proof metadata builder
+│   │   ├── streaks.ts            # Current/best streak & milestone logic
+│   │   ├── achievements.ts       # Achievement tiers & progress
+│   │   ├── sortTasks.ts          # Search filtering & feed sorting
+│   │   └── earnings.ts           # Earnings sums, type grouping, weekly series
 │   │
-│   └── __tests__/                # Tests (86 tests across 10 files)
+│   └── __tests__/                # Tests (135 tests across 15 files)
 │       ├── stores.test.ts        # Wallet, task, user, activity store tests
 │       ├── components.test.tsx   # Component rendering tests
 │       ├── formatTokens.test.ts  # Token formatting tests
@@ -159,7 +172,12 @@ ecotask-app/
 │       ├── proofMetadata.test.ts # IPFS metadata builder tests
 │       ├── impact.test.ts        # Impact calculation tests
 │       ├── walletVault.test.ts   # Secret key vault tests
-│       └── signChallenge.test.ts # Stellar challenge signing tests
+│       ├── signChallenge.test.ts # Stellar challenge signing tests
+│       ├── streaks.test.ts       # Streak calculation & milestones
+│       ├── achievements.test.ts  # Achievement thresholds & progress
+│       ├── sortTasks.test.ts     # Search & sort logic
+│       ├── stellarPayment.test.ts# Payment build/sign & validation
+│       └── earnings.test.ts      # Earnings sums, grouping & weekly series
 │
 ├── .github/                      # CI/CD & templates
 ├── .env.example                  # Environment variable template
@@ -229,7 +247,7 @@ FCM_SERVER_KEY=your_fcm_key
 ## 🧪 Testing
 
 ```bash
-# Run unit tests (86 tests)
+# Run unit tests (135 tests)
 npm test
 
 # Run with coverage
@@ -245,8 +263,8 @@ npm run test:integration
 |----------|-------|-------|
 | Store logic | 19 | walletStore, taskStore, userStore, activityStore |
 | Component rendering | 19 | TaskCard, ImpactStats, RewardBadge, EmptyState |
-| Utility functions | 34 | formatTokens, geoUtils, validation, impact, proofMetadata |
-| Service logic | 14 | proofQueue, walletVault, signChallenge |
+| Utility functions | 71 | formatTokens, geoUtils, validation, impact, proofMetadata, streaks, achievements, sortTasks, earnings |
+| Service logic | 26 | proofQueue, walletVault, signChallenge, stellarPayment |
 
 ---
 
@@ -289,12 +307,17 @@ EcoTask is in early alpha. Here's what we're building and in what order:
 - ✅ In-app wallet import, secret key backup & challenge signing
 - ✅ Real camera proof capture with GPS
 - ✅ Task browsing, filtering, and detail view
+- ✅ Task search, sorting (distance/reward/difficulty) & radius controls
 - ✅ Location-aware task discovery sorted by distance
-- ✅ Offline proof queue & sync
+- ✅ Offline proof queue & sync (with dedupe and status banner)
 - ✅ Offline task feed caching
 - ✅ IPFS proof pinning in the submission flow
 - ✅ Persistent activity feed & impact dashboard
 - ✅ Transaction history (Stellar Horizon)
+- ✅ Streak tracking with milestones (7/14/30/60/100 days)
+- ✅ Achievement badges for impact milestones
+- ✅ Earnings analytics (totals, task-type breakdown, 4-week trend)
+- ✅ Send tokens (XLM/ECO) with signed Stellar payments
 
 ### Next (v0.3)
 - 🔜 **Backend verification engine** — photo + GPS proof validation
@@ -306,8 +329,8 @@ EcoTask is in early alpha. Here's what we're building and in what order:
 - 🔜 **Map-based task discovery** (React Native Maps)
 - 🔜 **Multi-language support** (English, Swahili, French, Portuguese)
 - 🔜 **USDC payout option**
-- 🔜 **Withdraw flow & transaction signing**
-- 🔜 **Leaderboards, streaks & community challenges**
+- 🔜 **Leaderboards & community challenges**
+- 🔜 **Shared communities, group goals & social proof**
 
 > Milestones are tracked in the [GitHub issues](https://github.com/ecotask-network/EcoTask-app/issues) — check the `roadmap` label for current priorities.
 
