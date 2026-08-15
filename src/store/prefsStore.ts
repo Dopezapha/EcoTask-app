@@ -22,7 +22,9 @@ export function mergeNotificationDefaults(
   stored: Record<string, boolean> | null,
 ): Record<string, boolean> {
   const defaults = makeDefaultNotificationPrefs();
-  if (!stored) return defaults;
+  if (!stored) {
+    return defaults;
+  }
   return { ...defaults, ...stored };
 }
 
@@ -47,38 +49,67 @@ export const usePrefsStore = create<PrefsState>()(
       scheduledNotificationIds: {},
       toggleType: (type, enabled) => {
         // update preference synchronously so callers see immediate change
-        set(s => ({ notificationPrefs: { ...s.notificationPrefs, [type]: enabled } }));
+        set(s => ({
+          notificationPrefs: { ...s.notificationPrefs, [type]: enabled },
+        }));
 
         // if disabling, cancel any scheduled notifications asynchronously
         if (!enabled) {
           (async () => {
-            const ids = usePrefsStore.getState().scheduledNotificationIds[type] || [];
+            const ids =
+              usePrefsStore.getState().scheduledNotificationIds[type] || [];
             if (ids.length > 0) {
               try {
                 const notifee = await import('@notifee/react-native');
-                await Promise.all(ids.map(id => notifee.cancelNotification(id).catch(() => null)));
+                await Promise.all(
+                  ids.map(id =>
+                    notifee.cancelNotification(id).catch(() => null),
+                  ),
+                );
               } catch {
                 // notifee not available or cancel failed; best-effort
               }
             }
-            usePrefsStore.setState(s => ({ scheduledNotificationIds: { ...s.scheduledNotificationIds, [type]: [] } } as any));
+            usePrefsStore.setState(
+              s =>
+                ({
+                  scheduledNotificationIds: {
+                    ...s.scheduledNotificationIds,
+                    [type]: [],
+                  },
+                }) as any,
+            );
           })();
         }
       },
       setAllEnabled: enabled => set(() => ({ allEnabled: enabled })),
       setQuietHours: (from, to) => set(() => ({ quietHours: { from, to } })),
       addScheduledId: (type, id) =>
-        set(s => ({ scheduledNotificationIds: { ...s.scheduledNotificationIds, [type]: [...(s.scheduledNotificationIds[type] || []), id] } })),
+        set(s => ({
+          scheduledNotificationIds: {
+            ...s.scheduledNotificationIds,
+            [type]: [...(s.scheduledNotificationIds[type] || []), id],
+          },
+        })),
       removeScheduledId: (type, id) =>
-        set(s => ({ scheduledNotificationIds: { ...s.scheduledNotificationIds, [type]: (s.scheduledNotificationIds[type] || []).filter(i => i !== id) } })),
+        set(s => ({
+          scheduledNotificationIds: {
+            ...s.scheduledNotificationIds,
+            [type]: (s.scheduledNotificationIds[type] || []).filter(
+              i => i !== id,
+            ),
+          },
+        })),
     }),
     {
       name: 'prefs-storage',
       storage: createJSONStorage(() => zustandMMKVStorage),
-      onRehydrateStorage: () => (state) => {
-        return (persisted) => {
+      onRehydrateStorage: () => state => {
+        return persisted => {
           if (persisted && persisted.notificationPrefs) {
-            const merged = mergeNotificationDefaults(persisted.notificationPrefs as Record<string, boolean>);
+            const merged = mergeNotificationDefaults(
+              persisted.notificationPrefs as Record<string, boolean>,
+            );
             state?.setState({ notificationPrefs: merged });
           }
         };

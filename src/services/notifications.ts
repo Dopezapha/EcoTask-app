@@ -62,18 +62,29 @@ export function onNotificationReceived(
 // Notification types (re-exported from constants to avoid circular imports)
 export { NOTIFICATION_TYPES } from '../constants/notificationTypes';
 
-export async function scheduleLocalNotification(payload: NotificationPayload & { type?: string }): Promise<void> {
+export async function scheduleLocalNotification(
+  payload: NotificationPayload & { type?: string },
+): Promise<void> {
   // Check global prefs and quiet hours before firing
   const prefs = usePrefsStore.getState();
-  if (!prefs.allEnabled) return;
+  if (!prefs.allEnabled) {
+    return;
+  }
 
-  const type = payload.type || payload.data?.type || payload.data?.notificationType;
-  if (type && prefs.notificationPrefs && prefs.notificationPrefs[type] === false) {
+  const type =
+    payload.type || payload.data?.type || payload.data?.notificationType;
+  if (
+    type &&
+    prefs.notificationPrefs &&
+    prefs.notificationPrefs[type] === false
+  ) {
     return;
   }
 
   const { from, to } = prefs.quietHours || { from: '00:00', to: '00:00' };
-  if (isNowInQuietHours(from, to)) return;
+  if (isNowInQuietHours(from, to)) {
+    return;
+  }
 
   // Best-effort: if notifee is available and payload requests scheduling, use it
   try {
@@ -86,12 +97,18 @@ export async function scheduleLocalNotification(payload: NotificationPayload & {
     } as any);
     // notifee.displayNotification may return an id in some setups; store it if present
     if (notification && (notification as any).id) {
-      usePrefsStore.getState().addScheduledId(type || 'unknown', (notification as any).id);
+      usePrefsStore
+        .getState()
+        .addScheduledId(type || 'unknown', (notification as any).id);
     }
-    if (onNotificationCallback) onNotificationCallback(payload);
+    if (onNotificationCallback) {
+      onNotificationCallback(payload);
+    }
     return;
   } catch {
     // fallback to local callback
-    if (onNotificationCallback) onNotificationCallback(payload);
+    if (onNotificationCallback) {
+      onNotificationCallback(payload);
+    }
   }
 }

@@ -3,7 +3,11 @@ export function parseTimeToMinutes(t: string): number {
   return (h || 0) * 60 + (m || 0);
 }
 
-export function isNowInQuietHours(from: string, to: string, now = new Date()): boolean {
+export function isNowInQuietHours(
+  from: string,
+  to: string,
+  now = new Date(),
+): boolean {
   const nowMin = now.getUTCHours() * 60 + now.getUTCMinutes();
   const f = parseTimeToMinutes(from);
   const tt = parseTimeToMinutes(to);
