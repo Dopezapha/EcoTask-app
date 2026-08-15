@@ -27,6 +27,7 @@ export default function SubmitProofScreen() {
   const cameraRef = useRef<Camera>(null);
 
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [capturedAt, setCapturedAt] = useState<string | null>(null);
   const { location, error: locationError } = useLocation();
   const { submit, isSubmitting, progress, error } = useProofSubmit();
   const addActivity = useActivityStore(s => s.addActivity);
@@ -49,17 +50,18 @@ export default function SubmitProofScreen() {
         flash: 'off',
       });
       setPhotoUri(`file://${photo.path}`);
+      setCapturedAt(new Date().toISOString());
     } catch (err: any) {
       Alert.alert('Camera Error', err.message || 'Failed to capture photo');
     }
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!photoUri) {
+    if (!photoUri || !capturedAt) {
       Alert.alert('Error', 'Please take a photo first');
       return;
     }
-    const result = await submit(taskId, photoUri, location?.lat, location?.lng);
+    const result = await submit(taskId, photoUri, capturedAt, location?.lat, location?.lng);
     if (result) {
       addActivity({
         id: Date.now().toString(),
@@ -90,6 +92,7 @@ export default function SubmitProofScreen() {
     }
   }, [
     photoUri,
+    capturedAt,
     taskId,
     location,
     submit,
@@ -256,7 +259,10 @@ export default function SubmitProofScreen() {
         ) : (
           <>
             <TouchableOpacity
-              onPress={() => setPhotoUri(null)}
+              onPress={() => {
+                setPhotoUri(null);
+                setCapturedAt(null);
+              }}
               disabled={isSubmitting}
               style={{
                 flex: 1,

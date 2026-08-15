@@ -18,6 +18,7 @@ describe('proofQueue', () => {
     lat: 51.5,
     lng: -0.1,
     createdAt: '2026-01-01T00:00:00.000Z',
+    capturedAt: '2026-01-01T00:00:00.000Z',
   };
 
   beforeEach(() => {
