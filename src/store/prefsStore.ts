@@ -43,6 +43,7 @@ interface PrefsState {
   removeScheduledId: (type: string, id: string) => void;
 }
 
+// Zustand store for user preferences, including notification settings
 export const usePrefsStore = create<PrefsState>()(
   persist(
     set => ({
