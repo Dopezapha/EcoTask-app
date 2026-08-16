@@ -35,7 +35,9 @@ describe('buildProofMetadata', () => {
 describe('proofFileName', () => {
   it('includes the task id and extension deterministically', () => {
     const name = proofFileName('task-42', '2026-01-01T00:00:00.000Z');
-    expect(name).toBe(`proof-task-42-${new Date('2026-01-01T00:00:00.000Z').getTime()}.jpg`);
+    expect(name).toBe(
+      `proof-task-42-${new Date('2026-01-01T00:00:00.000Z').getTime()}.jpg`,
+    );
   });
 
   it('uses a custom extension', () => {

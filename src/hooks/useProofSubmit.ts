@@ -45,10 +45,15 @@ export function useProofSubmit() {
 
       try {
         if (!photoCid) {
-          const photoResult = await pinFile(photoUri, proofFileName(taskId, capturedAt));
+          const photoResult = await pinFile(
+            photoUri,
+            proofFileName(taskId, capturedAt),
+          );
           photoCid = photoResult.cid;
         }
-        if (photoCid) formData.append('ipfsPhotoCid', photoCid);
+        if (photoCid) {
+          formData.append('ipfsPhotoCid', photoCid);
+        }
 
         if (!metadataCid && photoCid) {
           const metadataResult = await pinJSON(
@@ -63,7 +68,9 @@ export function useProofSubmit() {
           );
           metadataCid = metadataResult.cid;
         }
-        if (metadataCid) formData.append('ipfsMetadataCid', metadataCid);
+        if (metadataCid) {
+          formData.append('ipfsMetadataCid', metadataCid);
+        }
       } catch {}
 
       try {
@@ -78,14 +85,26 @@ export function useProofSubmit() {
   );
 
   const submit = useCallback(
-    async (taskId: string, photoUri: string, capturedAt: string, lat?: number, lng?: number) => {
+    async (
+      taskId: string,
+      photoUri: string,
+      capturedAt: string,
+      lat?: number,
+      lng?: number,
+    ) => {
       setIsSubmitting(true);
       setProgress('uploading');
       setError(null);
 
       try {
         setProgress('verifying');
-        const result = await submitProofAttempt(taskId, photoUri, capturedAt, lat, lng);
+        const result = await submitProofAttempt(
+          taskId,
+          photoUri,
+          capturedAt,
+          lat,
+          lng,
+        );
         removeProofsForTask(taskId);
         setPendingCount(loadQueue().length);
         setProgress('confirmed');

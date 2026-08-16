@@ -61,7 +61,13 @@ export default function SubmitProofScreen() {
       Alert.alert('Error', 'Please take a photo first');
       return;
     }
-    const result = await submit(taskId, photoUri, capturedAt, location?.lat, location?.lng);
+    const result = await submit(
+      taskId,
+      photoUri,
+      capturedAt,
+      location?.lat,
+      location?.lng,
+    );
     if (result) {
       addActivity({
         id: Date.now().toString(),
