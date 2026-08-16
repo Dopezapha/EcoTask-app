@@ -1,4 +1,5 @@
 import * as api from '../../services/api';
+import { fetchTasks, fetchTaskById } from '../../services/api';
 import { useUserStore } from '../../store/userStore';
 
 describe('api integration flow (mocked)', () => {
@@ -9,10 +10,14 @@ describe('api integration flow (mocked)', () => {
 
   test('auth challenge -> login -> fetchTasks -> submitProof', async () => {
     const wallet = 'GABC';
-    jest.spyOn(api, 'getAuthChallenge').mockResolvedValue({ challenge: 'nonce-123' } as any);
-    jest.spyOn(api, 'loginWithWallet').mockResolvedValue({ token: 'tok', user: { id: 'u1' } } as any);
-    jest.spyOn(api, 'fetchTasks').mockResolvedValue([{ id: 't1' }] as any);
-    jest.spyOn(api, 'submitProof').mockResolvedValue({ id: 'proof1', status: 'confirmed' } as any);
+    const spyGetAuth = jest.spyOn(api, 'getAuthChallenge');
+    spyGetAuth.mockResolvedValue({ challenge: 'nonce-123' } as any);
+    const spyLogin = jest.spyOn(api, 'loginWithWallet');
+    spyLogin.mockResolvedValue({ token: 'tok', user: { id: 'u1' } } as any);
+    const spyFetch = jest.spyOn(api, 'fetchTasks');
+    spyFetch.mockResolvedValue([{ id: 't1' }] as any);
+    const spySubmit = jest.spyOn(api, 'submitProof');
+    spySubmit.mockResolvedValue({ id: 'proof1', status: 'confirmed' } as any);
 
     const c = await api.getAuthChallenge(wallet);
     expect(c.challenge).toBe('nonce-123');
@@ -28,7 +33,6 @@ describe('api integration flow (mocked)', () => {
     expect(proofRes.id).toBe('proof1');
   });
 });
-import { fetchTasks, fetchTaskById } from '../api';
 
 describe('API Integration', () => {
   it('fetchTasks returns paginated results', async () => {

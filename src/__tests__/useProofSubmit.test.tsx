@@ -1,5 +1,5 @@
 import React from 'react';
-import renderer, { act, create } from 'react-test-renderer';
+import renderer, { act } from 'react-test-renderer';
 import { useProofSubmit } from '../hooks/useProofSubmit';
 import * as api from '../services/api';
 import * as ipfs from '../services/ipfs';
@@ -139,7 +139,7 @@ describe('useProofSubmit retry logic', () => {
 		}
 
 		act(() => {
-			create(<TestComponent />);
+			renderer.create(<TestComponent />);
 		});
 
 		await act(async () => {
