@@ -9,6 +9,7 @@ import {
   saveQueue,
   removeProofsForTask,
 } from '../services/proofQueue';
+import { useProofSyncStore } from '../store/proofSyncStore';
 
 export function useProofSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +73,16 @@ export function useProofSubmit() {
         if (metadataCid) {
           formData.append('ipfsMetadataCid', metadataCid);
         }
-      } catch {}
+      } catch (ipfsErr: any) {
+        // IPFS failure: block submission to prevent empty CID fields
+        const error = new Error(
+          `IPFS upload failed: ${ipfsErr.message || 'Unknown error'}`,
+        );
+        (error as any).photoCid = photoCid;
+        (error as any).metadataCid = metadataCid;
+        (error as any).isIpfsError = true;
+        throw error;
+      }
 
       try {
         return await submitProof(formData);
@@ -134,33 +144,44 @@ export function useProofSubmit() {
   );
 
   const syncPendingProofs = useCallback(async () => {
+    // In-flight guard to prevent concurrent sync calls
+    if (useProofSyncStore.getState().isSyncing) {
+      return;
+    }
+
     const pending = loadQueue();
     if (pending.length === 0) {
       return;
     }
 
-    const remaining: PendingProof[] = [];
-    for (const proof of pending) {
-      try {
-        await submitProofAttempt(
-          proof.taskId,
-          proof.photoPath,
-          proof.capturedAt,
-          proof.lat,
-          proof.lng,
-          proof.photoCid,
-          proof.metadataCid,
-        );
-      } catch (err: any) {
-        remaining.push({
-          ...proof,
-          photoCid: err.photoCid || proof.photoCid,
-          metadataCid: err.metadataCid || proof.metadataCid,
-        });
+    useProofSyncStore.getState().startSync();
+
+    try {
+      const remaining: PendingProof[] = [];
+      for (const proof of pending) {
+        try {
+          await submitProofAttempt(
+            proof.taskId,
+            proof.photoPath,
+            proof.capturedAt,
+            proof.lat,
+            proof.lng,
+            proof.photoCid,
+            proof.metadataCid,
+          );
+        } catch (err: any) {
+          remaining.push({
+            ...proof,
+            photoCid: err.photoCid || proof.photoCid,
+            metadataCid: err.metadataCid || proof.metadataCid,
+          });
+        }
       }
+      saveQueue(remaining);
+      setPendingCount(remaining.length);
+    } finally {
+      useProofSyncStore.getState().endSync();
     }
-    saveQueue(remaining);
-    setPendingCount(remaining.length);
   }, [submitProofAttempt]);
 
   return {
