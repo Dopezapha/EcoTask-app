@@ -22,17 +22,27 @@ export function useProofSubmit() {
     async (
       taskId: string,
       photoUri: string,
-      opts?: { lat?: number; lng?: number; photoCid?: string; metadataCid?: string },
+      opts?: {
+        lat?: number;
+        lng?: number;
+        photoCid?: string;
+        metadataCid?: string;
+      },
     ) => {
       const formData = new FormData();
       formData.append('taskId', taskId);
-      if (opts?.lat !== undefined) formData.append('lat', String(opts.lat));
-      if (opts?.lng !== undefined) formData.append('lng', String(opts.lng));
+      if (opts?.lat !== undefined) {
+        formData.append('lat', String(opts.lat));
+      }
+      if (opts?.lng !== undefined) {
+        formData.append('lng', String(opts.lng));
+      }
 
-      formData.append(
-        'photos',
-        ({ uri: photoUri, type: 'image/jpeg', name: 'proof.jpg' } as any),
-      );
+      formData.append('photos', {
+        uri: photoUri,
+        type: 'image/jpeg',
+        name: 'proof.jpg',
+      } as any);
 
       // reuse provided CIDs when available
       let photoCid = opts?.photoCid;
@@ -46,7 +56,12 @@ export function useProofSubmit() {
           }
           if (photoCid && !metadataCid) {
             const metadataRes = await pinJSON(
-              buildProofMetadata({ taskId, photoCid, lat: opts?.lat, lng: opts?.lng }),
+              buildProofMetadata({
+                taskId,
+                photoCid,
+                lat: opts?.lat,
+                lng: opts?.lng,
+              }),
               proofFileName(taskId, 'json'),
             );
             metadataCid = metadataRes.cid;
@@ -56,8 +71,12 @@ export function useProofSubmit() {
         }
       }
 
-      if (photoCid) formData.append('ipfsPhotoCid', photoCid);
-      if (metadataCid) formData.append('ipfsMetadataCid', metadataCid);
+      if (photoCid) {
+        formData.append('ipfsPhotoCid', photoCid);
+      }
+      if (metadataCid) {
+        formData.append('ipfsMetadataCid', metadataCid);
+      }
 
       try {
         return await submitProof(formData);
@@ -108,7 +127,9 @@ export function useProofSubmit() {
 
   const syncPendingProofs = useCallback(async () => {
     const pending = loadQueue();
-    if (pending.length === 0) return;
+    if (pending.length === 0) {
+      return;
+    }
 
     const remaining: PendingProof[] = [];
     for (const proof of pending) {
@@ -131,5 +152,12 @@ export function useProofSubmit() {
     setPendingCount(remaining.length);
   }, [submitProofAttempt]);
 
-  return { submit, syncPendingProofs, pendingCount, isSubmitting, progress, error };
+  return {
+    submit,
+    syncPendingProofs,
+    pendingCount,
+    isSubmitting,
+    progress,
+    error,
+  };
 }

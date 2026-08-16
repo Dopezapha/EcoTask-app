@@ -24,26 +24,8 @@ jest.mock('zustand/middleware', () => {
 
       // create a wrapped config that uses the provided set/get
       return (set: any, get: any, api: any) => {
-        const getItem = async (k: string) => {
-          try {
-            const raw = storage.getItem(name);
-            return raw;
-          } catch {
-            return null;
-          }
-        };
-
-        const setItem = async (k: string, value: string) => {
-          try {
-            storage.setItem(name, value);
-          } catch {}
-        };
-
-        const removeItem = async (k: string) => {
-          try {
-            storage.removeItem(name);
-          } catch {}
-        };
+        // persist storage helpers are intentionally unused in tests
+        // (storage is accessed directly via createJSONStorage mock below)
 
         // if storage has existing data, try to hydrate by calling set with parsed JSON
         const existing = storage.getItem(name);
