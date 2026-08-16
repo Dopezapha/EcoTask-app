@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
-import { haversineDistance } from '../utils/geoUtils';
 
 interface Location {
   lat: number;
@@ -9,6 +8,26 @@ interface Location {
 }
 
 const MOVEMENT_THRESHOLD_KM = 0.05; // 50 metres
+
+function haversineDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371; // Earth radius in km
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 export function useLocation() {
   const [location, setLocation] = useState<Location | null>(null);
@@ -29,7 +48,8 @@ export function useLocation() {
         watchIdRef.current = null;
       }
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function requestPermission() {
     try {
@@ -59,7 +79,7 @@ export function useLocation() {
         };
 
         // Only update state when movement > 50 m
-        if (lastAcceptedRef.current) {
+        if (lastAcceptedRef.current !== null) {
           const distanceKm = haversineDistance(
             lastAcceptedRef.current.lat,
             lastAcceptedRef.current.lng,
@@ -78,7 +98,7 @@ export function useLocation() {
       err => setError(err.message),
       {
         enableHighAccuracy: false, // battery-friendly continuous watch
-        distanceFilter: 0,         // we do the 50 m filter ourselves
+        distanceFilter: 0, // we do the 50 m filter ourselves
         timeout: 15000,
         maximumAge: 10000,
       },
