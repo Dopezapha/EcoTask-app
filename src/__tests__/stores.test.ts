@@ -4,6 +4,14 @@ import { useTaskStore } from '../store/taskStore';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
 
+function makeJwt(exp: number): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256' })).toString(
+    'base64url',
+  );
+  const payload = Buffer.from(JSON.stringify({ exp })).toString('base64url');
+  return `${header}.${payload}.signature`;
+}
+
 describe('walletStore', () => {
   beforeEach(() => {
     useWalletStore.setState({
@@ -165,7 +173,7 @@ describe('taskStore', () => {
 
 describe('userStore', () => {
   beforeEach(() => {
-    useUserStore.setState({ profile: null, token: null });
+    useUserStore.setState({ profile: null, token: null, tokenExpiresAt: null });
   });
   it('starts with no profile or token', () => {
     const state = useUserStore.getState();
@@ -187,6 +195,13 @@ describe('userStore', () => {
   it('sets token', () => {
     useUserStore.getState().setToken('jwt-abc');
     expect(useUserStore.getState().token).toBe('jwt-abc');
+    expect(useUserStore.getState().tokenExpiresAt).toBeNull();
+  });
+
+  it('decodes token expiry from the JWT exp claim', () => {
+    const token = makeJwt(1234567890);
+    useUserStore.getState().setToken(token);
+    expect(useUserStore.getState().tokenExpiresAt).toBe(1234567890 * 1000);
   });
 
   it('updates stats', () => {
@@ -211,11 +226,12 @@ describe('userStore', () => {
       name: 'Alice',
       stats: { treesPlanted: 0, plasticCollected: 0, co2Reduced: 0 },
     });
-    setToken('jwt-abc');
+    setToken(makeJwt(1234567890));
     logout();
     const state = useUserStore.getState();
     expect(state.profile).toBeNull();
     expect(state.token).toBeNull();
+    expect(state.tokenExpiresAt).toBeNull();
   });
 });
 
