@@ -19,6 +19,8 @@ function makeDefaultNotificationPrefs() {
   return vals;
 }
 
+// Merge stored notification preferences with defaults, ensuring any new types are enabled by default
+
 export function mergeNotificationDefaults(
   stored: Record<string, boolean> | null,
 ): Record<string, boolean> {
