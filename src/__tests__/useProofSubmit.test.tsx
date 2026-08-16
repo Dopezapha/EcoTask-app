@@ -172,5 +172,4 @@ describe('useProofSubmit retry logic', () => {
 });
 
 
->>>>>>> 059328e (fix lint, build and test issues)
 
