@@ -34,6 +34,7 @@ export function useProofSubmit() {
         formData.append('lat', String(lat));
         formData.append('lng', String(lng));
       }
+      // React Native FormData accepts a file-like object; TypeScript DOM types do not
       formData.append('photos', {
         uri: photoUri,
         type: 'image/jpeg',
