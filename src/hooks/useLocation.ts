@@ -1,19 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
+import { haversineDistance } from '../utils/geoUtils';
 
 interface Location {
   lat: number;
   lng: number;
 }
 
+const MOVEMENT_THRESHOLD_KM = 0.05; // 50 metres
+
 export function useLocation() {
   const [location, setLocation] = useState<Location | null>(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Keep last accepted position so we can apply the 50 m Haversine filter
+  const lastAcceptedRef = useRef<Location | null>(null);
+  const watchIdRef = useRef<number | null>(null);
+
   useEffect(() => {
     requestPermission();
+
+    return () => {
+      // Acceptance: clear watcher on unmount
+      if (watchIdRef.current !== null) {
+        Geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function requestPermission() {
@@ -28,16 +43,58 @@ export function useLocation() {
         }
       }
       setPermissionGranted(true);
-      getCurrentLocation();
+      startWatch();
     } catch (err: any) {
       setError(err.message);
     }
   }
 
-  function getCurrentLocation() {
+  function startWatch() {
+    // Continuous watch – low power (enableHighAccuracy: false)
+    watchIdRef.current = Geolocation.watchPosition(
+      pos => {
+        const next = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+
+        // Only update state when movement > 50 m
+        if (lastAcceptedRef.current) {
+          const distanceKm = haversineDistance(
+            lastAcceptedRef.current.lat,
+            lastAcceptedRef.current.lng,
+            next.lat,
+            next.lng,
+          );
+          if (distanceKm < MOVEMENT_THRESHOLD_KM) {
+            return; // ignore small movement / GPS noise
+          }
+        }
+
+        lastAcceptedRef.current = next;
+        setLocation(next);
+        setError(null);
+      },
+      err => setError(err.message),
+      {
+        enableHighAccuracy: false, // battery-friendly continuous watch
+        distanceFilter: 0,         // we do the 50 m filter ourselves
+        timeout: 15000,
+        maximumAge: 10000,
+      },
+    );
+  }
+
+  // On-demand high-accuracy single fix (acceptance criteria)
+  function refresh() {
     Geolocation.getCurrentPosition(
       pos => {
-        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const next = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        lastAcceptedRef.current = next;
+        setLocation(next);
         setError(null);
       },
       err => setError(err.message),
@@ -45,5 +102,6 @@ export function useLocation() {
     );
   }
 
-  return { location, permissionGranted, error, refresh: getCurrentLocation };
+  // Return shape is unchanged
+  return { location, permissionGranted, error, refresh };
 }
