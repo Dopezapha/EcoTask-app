@@ -1,9 +1,10 @@
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import { useProofSubmit } from '../hooks/useProofSubmit';
-import * as api from '../services/api';
-import * as ipfs from '../services/ipfs';
-import { clearQueue, loadQueue } from '../services/proofQueue';
+import { pinFile, pinJSON } from '../services/ipfs';
+import { submitProof } from '../services/api';
+import { loadQueue } from '../services/proofQueue';
+import { useProofSyncStore } from '../store/proofSyncStore';
 
 function HookHarness({ onRef }: any) {
   const hook = useProofSubmit();
@@ -122,6 +123,8 @@ describe('useProofSubmit integration', () => {
 describe('useProofSubmit retry logic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the sync store state before each test
+    useProofSyncStore.getState().endSync();
   });
 
   it('reuses stored CIDs without a second IPFS call', async () => {
@@ -188,5 +191,56 @@ describe('useProofSubmit retry logic', () => {
 
     expect(photoCid).toBe('QmPhoto');
     expect(metadataCid).toBe('QmMeta');
+  });
+
+  it('prevents concurrent syncPendingProofs calls from duplicating submissions', async () => {
+    const mockSubmitProof = submitProof as jest.MockedFunction<
+      typeof submitProof
+    >;
+    const mockLoadQueue = loadQueue as jest.MockedFunction<typeof loadQueue>;
+
+    const pendingProofs = [
+      {
+        id: '1',
+        taskId: 't1',
+        photoPath: 'file:///proof1.jpg',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        capturedAt: '2026-01-01T00:00:00.000Z',
+        photoCid: 'QmPhoto1',
+        metadataCid: 'QmMeta1',
+      },
+      {
+        id: '2',
+        taskId: 't2',
+        photoPath: 'file:///proof2.jpg',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        capturedAt: '2026-01-01T00:00:00.000Z',
+        photoCid: 'QmPhoto2',
+        metadataCid: 'QmMeta2',
+      },
+    ];
+
+    mockLoadQueue.mockReturnValue(pendingProofs);
+    mockSubmitProof.mockResolvedValue({});
+
+    let hookResult: any;
+    function TestComponent() {
+      hookResult = useProofSubmit();
+      return null;
+    }
+
+    act(() => {
+      create(<TestComponent />);
+    });
+
+    // Call syncPendingProofs twice concurrently
+    await act(async () => {
+      const promise1 = hookResult.syncPendingProofs();
+      const promise2 = hookResult.syncPendingProofs();
+      await Promise.all([promise1, promise2]);
+    });
+
+    // Each proof should be submitted exactly once (not twice)
+    expect(mockSubmitProof).toHaveBeenCalledTimes(2);
   });
 });
