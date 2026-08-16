@@ -12,6 +12,7 @@ const zustandMMKVStorage = {
 
 type QuietHours = { from: string; to: string };
 
+// Create default notification preferences with all types enabled
 function makeDefaultNotificationPrefs() {
   const vals: Record<string, boolean> = {};
   Object.values(NOTIFICATION_TYPES).forEach(t => (vals[t] = true));
@@ -119,5 +120,3 @@ export const usePrefsStore = create<PrefsState>()(
 );
 
 export default usePrefsStore;
-
-
