@@ -1,9 +1,9 @@
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import { useProofSubmit } from '../hooks/useProofSubmit';
-import { pinFile, pinJSON } from '../services/ipfs';
-import { submitProof } from '../services/api';
-import { loadQueue } from '../services/proofQueue';
+import * as ipfs from '../services/ipfs';
+import * as api from '../services/api';
+import { clearQueue, loadQueue } from '../services/proofQueue';
 import { useProofSyncStore } from '../store/proofSyncStore';
 
 function HookHarness({ onRef }: any) {
@@ -194,8 +194,8 @@ describe('useProofSubmit retry logic', () => {
   });
 
   it('prevents concurrent syncPendingProofs calls from duplicating submissions', async () => {
-    const mockSubmitProof = submitProof as jest.MockedFunction<
-      typeof submitProof
+    const mockSubmitProof = api.submitProof as jest.MockedFunction<
+      typeof api.submitProof
     >;
     const mockLoadQueue = loadQueue as jest.MockedFunction<typeof loadQueue>;
 
@@ -230,7 +230,7 @@ describe('useProofSubmit retry logic', () => {
     }
 
     act(() => {
-      create(<TestComponent />);
+      renderer.create(<TestComponent />);
     });
 
     // Call syncPendingProofs twice concurrently

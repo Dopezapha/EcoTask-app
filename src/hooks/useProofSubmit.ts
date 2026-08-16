@@ -153,7 +153,8 @@ export function useProofSubmit() {
           remaining.push({
             ...proof,
             photoCid: (err as any)?.photoCid || (proof as any).photoCid,
-            metadataCid: (err as any)?.metadataCid || (proof as any).metadataCid,
+            metadataCid:
+              (err as any)?.metadataCid || (proof as any).metadataCid,
           } as PendingProof);
         }
       }
