@@ -72,39 +72,19 @@ export function useProofSubmit() {
         }
       }
 
-        if (!metadataCid && photoCid) {
-          const metadataResult = await pinJSON(
-            buildProofMetadata({
-              taskId,
-              photoCid,
-              lat,
-              lng,
-              capturedAt,
-            }),
-            proofFileName(taskId, capturedAt, 'json'),
-          );
-          metadataCid = metadataResult.cid;
-        }
-        if (metadataCid) {
-          formData.append('ipfsMetadataCid', metadataCid);
-        }
-      } catch (ipfsErr: any) {
-        // IPFS failure: block submission to prevent empty CID fields
-        const error = new Error(
-          `IPFS upload failed: ${ipfsErr.message || 'Unknown error'}`,
-        );
-        (error as any).photoCid = photoCid;
-        (error as any).metadataCid = metadataCid;
-        (error as any).isIpfsError = true;
-        throw error;
+      if (photoCid) {
+        formData.append('ipfsPhotoCid', photoCid);
+      }
+      if (metadataCid) {
+        formData.append('ipfsMetadataCid', metadataCid);
       }
 
       try {
         return await submitProof(formData);
-      } catch (err: any) {
+      } catch (err) {
         // attach the generated cids so callers can persist them
-        err.photoCid = photoCid;
-        err.metadataCid = metadataCid;
+        (err as any).photoCid = photoCid;
+        (err as any).metadataCid = metadataCid;
         throw err;
       }
     },
@@ -124,7 +104,7 @@ export function useProofSubmit() {
         setPendingCount(loadQueue().length);
         setProgress('confirmed');
         return result;
-      } catch (err: any) {
+      } catch (err) {
         enqueueProof({
           id: `${Date.now()}`,
           taskId,
@@ -132,11 +112,11 @@ export function useProofSubmit() {
           lat,
           lng,
           createdAt: new Date().toISOString(),
-          photoCid: err?.photoCid,
-          metadataCid: err?.metadataCid,
+          photoCid: (err as any)?.photoCid,
+          metadataCid: (err as any)?.metadataCid,
         });
         setPendingCount(loadQueue().length);
-        setError(err.message || 'Upload failed, saved for later');
+        setError((err as any).message || 'Upload failed, saved for later');
         setProgress('failed');
         return undefined;
       } finally {
@@ -148,7 +128,8 @@ export function useProofSubmit() {
 
   const syncPendingProofs = useCallback(async () => {
     // In-flight guard to prevent concurrent sync calls
-    if (useProofSyncStore.getState().isSyncing) {
+    const syncStore = useProofSyncStore.getState();
+    if (syncStore.isSyncing) {
       return;
     }
 
@@ -157,33 +138,29 @@ export function useProofSubmit() {
       return;
     }
 
-    useProofSyncStore.getState().startSync();
-
+    syncStore.startSync();
     try {
       const remaining: PendingProof[] = [];
       for (const proof of pending) {
         try {
-          await submitProofAttempt(
-            proof.taskId,
-            proof.photoPath,
-            proof.capturedAt,
-            proof.lat,
-            proof.lng,
-            proof.photoCid,
-            proof.metadataCid,
-          );
-        } catch (err: any) {
+          await submitProofAttempt(proof.taskId, proof.photoPath, {
+            lat: (proof as any).lat,
+            lng: (proof as any).lng,
+            photoCid: (proof as any).photoCid,
+            metadataCid: (proof as any).metadataCid,
+          });
+        } catch (err) {
           remaining.push({
             ...proof,
-            photoCid: err.photoCid || proof.photoCid,
-            metadataCid: err.metadataCid || proof.metadataCid,
-          });
+            photoCid: (err as any)?.photoCid || (proof as any).photoCid,
+            metadataCid: (err as any)?.metadataCid || (proof as any).metadataCid,
+          } as PendingProof);
         }
       }
       saveQueue(remaining);
       setPendingCount(remaining.length);
     } finally {
-      useProofSyncStore.getState().endSync();
+      syncStore.endSync();
     }
   }, [submitProofAttempt]);
 
