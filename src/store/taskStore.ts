@@ -37,7 +37,15 @@ export const useTaskStore = create<TaskState>()(
       page: 1,
       hasMore: true,
       setTasks: tasks => set({ tasks }),
-      appendTasks: tasks => set(s => ({ tasks: [...s.tasks, ...tasks] })),
+      appendTasks: tasks =>
+        set(s => ({
+          tasks: [
+            ...s.tasks,
+            ...tasks.filter(
+              t => !s.tasks.some(existing => existing.id === t.id),
+            ),
+          ],
+        })),
       selectTask: task => set({ selectedTask: task }),
       setLoading: isLoading => set({ isLoading }),
       setError: error => set({ error }),

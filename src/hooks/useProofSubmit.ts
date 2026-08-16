@@ -25,6 +25,11 @@ export function useProofSubmit() {
       lat?: number,
       lng?: number,
       opts?: { photoCid?: string; metadataCid?: string },
+      capturedAt: string,
+      lat?: number,
+      lng?: number,
+      existingPhotoCid?: string,
+      existingMetadataCid?: string,
     ) => {
       const formData = new FormData();
       formData.append('taskId', taskId);
@@ -32,6 +37,7 @@ export function useProofSubmit() {
         formData.append('lat', String(lat));
         formData.append('lng', String(lng));
       }
+      // React Native FormData accepts a file-like object; TypeScript DOM types do not
       formData.append('photos', {
         uri: photoUri,
         type: 'image/jpeg',
@@ -58,21 +64,71 @@ export function useProofSubmit() {
           formData.append('ipfsMetadataCid', metadataResult.cid);
         } catch {}
       }
+      let photoCid = existingPhotoCid;
+      let metadataCid = existingMetadataCid;
 
-      return await submitProof(formData);
+      try {
+        if (!photoCid) {
+          const photoResult = await pinFile(
+            photoUri,
+            proofFileName(taskId, capturedAt),
+          );
+          photoCid = photoResult.cid;
+        }
+        if (photoCid) {
+          formData.append('ipfsPhotoCid', photoCid);
+        }
+
+        if (!metadataCid && photoCid) {
+          const metadataResult = await pinJSON(
+            buildProofMetadata({
+              taskId,
+              photoCid,
+              lat,
+              lng,
+              capturedAt,
+            }),
+            proofFileName(taskId, capturedAt, 'json'),
+          );
+          metadataCid = metadataResult.cid;
+        }
+        if (metadataCid) {
+          formData.append('ipfsMetadataCid', metadataCid);
+        }
+      } catch {}
+
+      try {
+        return await submitProof(formData);
+      } catch (err: any) {
+        err.photoCid = photoCid;
+        err.metadataCid = metadataCid;
+        throw err;
+      }
     },
     [],
   );
 
   const submit = useCallback(
-    async (taskId: string, photoUri: string, lat?: number, lng?: number) => {
+    async (
+      taskId: string,
+      photoUri: string,
+      capturedAt: string,
+      lat?: number,
+      lng?: number,
+    ) => {
       setIsSubmitting(true);
       setProgress('uploading');
       setError(null);
 
       try {
         setProgress('verifying');
-        const result = await submitProofAttempt(taskId, photoUri, lat, lng);
+        const result = await submitProofAttempt(
+          taskId,
+          photoUri,
+          capturedAt,
+          lat,
+          lng,
+        );
         removeProofsForTask(taskId);
         setPendingCount(loadQueue().length);
         setProgress('confirmed');
@@ -85,6 +141,9 @@ export function useProofSubmit() {
           lat,
           lng,
           createdAt: new Date().toISOString(),
+          capturedAt,
+          photoCid: err.photoCid,
+          metadataCid: err.metadataCid,
         });
         setPendingCount(loadQueue().length);
         setError(err.message || 'Upload failed, saved for later');
@@ -109,12 +168,19 @@ export function useProofSubmit() {
         await submitProofAttempt(
           proof.taskId,
           proof.photoPath,
+          proof.capturedAt,
           proof.lat,
           proof.lng,
           { photoCid: (proof as any).photoCid, metadataCid: (proof as any).metadataCid },
+          proof.photoCid,
+          proof.metadataCid,
         );
-      } catch {
-        remaining.push(proof);
+      } catch (err: any) {
+        remaining.push({
+          ...proof,
+          photoCid: err.photoCid || proof.photoCid,
+          metadataCid: err.metadataCid || proof.metadataCid,
+        });
       }
     }
     saveQueue(remaining);
