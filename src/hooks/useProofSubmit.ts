@@ -19,7 +19,13 @@ export function useProofSubmit() {
   const [pendingCount, setPendingCount] = useState(() => loadQueue().length);
 
   const submitProofAttempt = useCallback(
-    async (taskId: string, photoUri: string, lat?: number, lng?: number) => {
+    async (
+      taskId: string,
+      photoUri: string,
+      lat?: number,
+      lng?: number,
+      opts?: { photoCid?: string; metadataCid?: string },
+    ) => {
       const formData = new FormData();
       formData.append('taskId', taskId);
       if (lat !== undefined && lng !== undefined) {
@@ -32,20 +38,26 @@ export function useProofSubmit() {
         name: 'proof.jpg',
       } as any);
 
-      try {
-        const photoResult = await pinFile(photoUri, proofFileName(taskId));
-        formData.append('ipfsPhotoCid', photoResult.cid);
-        const metadataResult = await pinJSON(
-          buildProofMetadata({
-            taskId,
-            photoCid: photoResult.cid,
-            lat,
-            lng,
-          }),
-          proofFileName(taskId, 'json'),
-        );
-        formData.append('ipfsMetadataCid', metadataResult.cid);
-      } catch {}
+      // If queued proof already has cids, reuse them and skip pinning
+      if (opts?.photoCid && opts?.metadataCid) {
+        formData.append('ipfsPhotoCid', opts.photoCid);
+        formData.append('ipfsMetadataCid', opts.metadataCid);
+      } else {
+        try {
+          const photoResult = await pinFile(photoUri, proofFileName(taskId));
+          formData.append('ipfsPhotoCid', photoResult.cid);
+          const metadataResult = await pinJSON(
+            buildProofMetadata({
+              taskId,
+              photoCid: photoResult.cid,
+              lat,
+              lng,
+            }),
+            proofFileName(taskId, 'json'),
+          );
+          formData.append('ipfsMetadataCid', metadataResult.cid);
+        } catch {}
+      }
 
       return await submitProof(formData);
     },
@@ -99,6 +111,7 @@ export function useProofSubmit() {
           proof.photoPath,
           proof.lat,
           proof.lng,
+          { photoCid: (proof as any).photoCid, metadataCid: (proof as any).metadataCid },
         );
       } catch {
         remaining.push(proof);
