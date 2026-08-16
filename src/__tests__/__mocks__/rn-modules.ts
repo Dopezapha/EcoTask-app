@@ -4,6 +4,8 @@ jest.mock('@react-native-community/netinfo', () => ({
 
 jest.mock('@react-native-community/geolocation', () => ({
   getCurrentPosition: jest.fn(),
+  watchPosition: jest.fn(() => 123),
+  clearWatch: jest.fn(),
 }));
 
 jest.mock('react-native-mmkv', () => {
@@ -30,3 +32,37 @@ jest.mock('react-native-config', () => ({
     ECO_TOKEN_ISSUER: 'TESTISSUER',
   },
 }));
+
+jest.mock(
+  'react-native-keychain',
+  () => {
+    const store: Record<string, { username: string; password: string }> = {};
+
+    return {
+      ACCESSIBLE: {
+        WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'AccessibleWhenUnlockedThisDeviceOnly',
+      },
+      setGenericPassword: jest.fn(
+        async (
+          username: string,
+          password: string,
+          opts?: { service?: string },
+        ) => {
+          const key = opts?.service || 'default';
+          store[key] = { username, password };
+          return true;
+        },
+      ),
+      getGenericPassword: jest.fn(async (opts?: { service?: string }) => {
+        const key = opts?.service || 'default';
+        return store[key] || false;
+      }),
+      resetGenericPassword: jest.fn(async (opts?: { service?: string }) => {
+        const key = opts?.service || 'default';
+        delete store[key];
+        return true;
+      }),
+    };
+  },
+  { virtual: true },
+);
