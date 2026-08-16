@@ -22,30 +22,6 @@ export function useProofSubmit() {
     async (
       taskId: string,
       photoUri: string,
-import { useState, useCallback } from 'react';
-import { submitProof } from '../services/api';
-import { pinFile, pinJSON } from '../services/ipfs';
-import { PendingProof } from '../types';
-import { buildProofMetadata, proofFileName } from '../utils/proofMetadata';
-import {
-  enqueueProof,
-  loadQueue,
-  saveQueue,
-  removeProofsForTask,
-} from '../services/proofQueue';
-
-export function useProofSubmit() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState<
-    'idle' | 'uploading' | 'verifying' | 'confirmed' | 'failed'
-  >('idle');
-  const [error, setError] = useState<string | null>(null);
-  const [pendingCount, setPendingCount] = useState(() => loadQueue().length);
-
-  const submitProofAttempt = useCallback(
-    async (
-      taskId: string,
-      photoUri: string,
       opts?: { lat?: number; lng?: number; photoCid?: string; metadataCid?: string },
     ) => {
       const formData = new FormData();
@@ -156,60 +132,4 @@ export function useProofSubmit() {
   }, [submitProofAttempt]);
 
   return { submit, syncPendingProofs, pendingCount, isSubmitting, progress, error };
-}
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [submitProofAttempt],
-  );
-
-  const syncPendingProofs = useCallback(async () => {
-    const pending = loadQueue();
-    if (pending.length === 0) {
-      return;
-    }
-
-    const remaining: PendingProof[] = [];
-    for (const proof of pending) {
-      try {
-        await submitProofAttempt(
-          proof.taskId,
-          proof.photoPath,
-<<<<<<< HEAD
-          proof.capturedAt,
-          proof.lat,
-          proof.lng,
-          { photoCid: (proof as any).photoCid, metadataCid: (proof as any).metadataCid },
-          proof.photoCid,
-          proof.metadataCid,
-=======
-          {
-            lat: (proof as any).lat,
-            lng: (proof as any).lng,
-            photoCid: (proof as any).photoCid,
-            metadataCid: (proof as any).metadataCid,
-          },
->>>>>>> 1737298 (fix lint, build and test issues)
-        );
-      } catch (err: any) {
-        remaining.push({
-          ...proof,
-          photoCid: err.photoCid || proof.photoCid,
-          metadataCid: err.metadataCid || proof.metadataCid,
-        });
-      }
-    }
-    saveQueue(remaining);
-    setPendingCount(remaining.length);
-  }, [submitProofAttempt]);
-
-  return {
-    submit,
-    syncPendingProofs,
-    pendingCount,
-    isSubmitting,
-    progress,
-    error,
-  };
 }
