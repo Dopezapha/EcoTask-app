@@ -66,6 +66,9 @@ export interface PendingProof {
   lat?: number;
   lng?: number;
   createdAt: string;
+  capturedAt: string;
+  photoCid?: string;
+  metadataCid?: string;
 }
 
 export interface SubmitProofParams {
