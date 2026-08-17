@@ -6,6 +6,7 @@ import MainTabNavigator from './MainTabNavigator';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import SubmitProofScreen from '../screens/SubmitProofScreen';
 import SendTokensScreen from '../screens/SendTokensScreen';
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   TaskDetail: { taskId: string };
   SubmitProof: SubmitProofParams;
   SendTokens: undefined;
+  NotificationPreferences: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -40,6 +42,11 @@ export default function RootNavigator() {
             <Stack.Screen
               name="EditProfile"
               component={EditProfileScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
+              name="NotificationPreferences"
+              component={NotificationPreferencesScreen}
               options={{ presentation: 'card' }}
             />
             <Stack.Screen

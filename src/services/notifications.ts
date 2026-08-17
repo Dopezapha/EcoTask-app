@@ -1,4 +1,6 @@
 import { Platform, PermissionsAndroid } from 'react-native';
+import { usePrefsStore } from '../store/prefsStore';
+import { isNowInQuietHours } from '../utils/quietHours';
 
 export interface NotificationPayload {
   title: string;
@@ -57,19 +59,56 @@ export function onNotificationReceived(
   };
 }
 
-// Notification types for EcoTask
-export const NOTIFICATION_TYPES = {
-  TASK_NEARBY: 'task_nearby',
-  REWARD_CONFIRMED: 'reward_confirmed',
-  PROOF_REJECTED: 'proof_rejected',
-  STREAK_REMINDER: 'streak_reminder',
-  NEW_TASK: 'new_task',
-} as const;
+// Notification types (re-exported from constants to avoid circular imports)
+export { NOTIFICATION_TYPES } from '../constants/notificationTypes';
 
-export function scheduleLocalNotification(payload: NotificationPayload): void {
-  // In production, use react-native-push-notification
-  // or notifee for local notification scheduling
-  if (onNotificationCallback) {
-    onNotificationCallback(payload);
+export async function scheduleLocalNotification(
+  payload: NotificationPayload & { type?: string },
+): Promise<void> {
+  // Check global prefs and quiet hours before firing
+  const prefs = usePrefsStore.getState();
+  if (!prefs.allEnabled) {
+    return;
+  }
+
+  const type =
+    payload.type || payload.data?.type || payload.data?.notificationType;
+  if (
+    type &&
+    prefs.notificationPrefs &&
+    prefs.notificationPrefs[type] === false
+  ) {
+    return;
+  }
+
+  const { from, to } = prefs.quietHours || { from: '00:00', to: '00:00' };
+  if (isNowInQuietHours(from, to)) {
+    return;
+  }
+
+  // Best-effort: if notifee is available and payload requests scheduling, use it
+  try {
+    const notifee = await import('@notifee/react-native');
+    // If payload contains a timestamp/data.trigger we could schedule; for now display immediately
+    const notification = await notifee.displayNotification({
+      title: payload.title,
+      body: payload.body,
+      data: payload.data as any,
+    } as any);
+    // notifee.displayNotification may return an id in some setups; store it if present
+    if (notification && (notification as any).id) {
+      usePrefsStore
+        .getState()
+        .addScheduledId(type || 'unknown', (notification as any).id);
+    }
+    if (onNotificationCallback) {
+      onNotificationCallback(payload);
+    }
+    return;
+  } catch {
+    // fallback to local callback
+    if (onNotificationCallback) {
+      onNotificationCallback(payload);
+    }
   }
 }
