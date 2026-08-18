@@ -193,4 +193,20 @@ export async function submitProof(formData: FormData) {
   return res.data;
 }
 
+export type ProofVerificationStatus = 'pending' | 'confirmed' | 'failed';
+
+export interface ProofStatusResponse {
+  proofId: string;
+  status: ProofVerificationStatus;
+  /** Reward amount set by the backend after successful verification. */
+  rewardAmount?: number;
+}
+
+export async function fetchProofStatus(
+  proofId: string,
+): Promise<ProofStatusResponse> {
+  const res = await api.get(`/proofs/${proofId}/status`);
+  return res.data as ProofStatusResponse;
+}
+
 export default api;

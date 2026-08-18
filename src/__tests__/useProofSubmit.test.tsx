@@ -37,9 +37,17 @@ describe('useProofSubmit integration', () => {
     });
 
     await act(async () => {
-      const res = await ref.submit('task-1', '/path/photo.jpg', 1, 2);
+      const res = await ref.submit(
+        'task-1',
+        '/path/photo.jpg',
+        '2026-01-01T00:00:00.000Z',
+        1,
+        2,
+      );
       expect(res).toEqual({ success: true });
-      expect(ref.progress).toBe('confirmed');
+      // After a successful POST the hook stays at 'verifying'; useProofStatus
+      // drives the transition to 'confirmed' once the backend responds.
+      expect(ref.progress).toBe('verifying');
       expect(ref.pendingCount).toBe(0);
     });
   });
@@ -58,7 +66,11 @@ describe('useProofSubmit integration', () => {
     });
 
     await act(async () => {
-      const res = await ref.submit('task-2', '/path/p.jpg');
+      const res = await ref.submit(
+        'task-2',
+        '/path/p.jpg',
+        '2026-01-01T00:00:00.000Z',
+      );
       expect(res).toBeUndefined();
       expect(ref.progress).toBe('failed');
       expect(ref.pendingCount).toBeGreaterThan(0);
@@ -82,9 +94,14 @@ describe('useProofSubmit integration', () => {
     });
 
     await act(async () => {
-      const res = await ref.submit('task-3', '/p.jpg');
+      const res = await ref.submit(
+        'task-3',
+        '/p.jpg',
+        '2026-01-01T00:00:00.000Z',
+      );
       expect(res).toEqual({ ok: true });
-      expect(ref.progress).toBe('confirmed');
+      // Progress stays at 'verifying' — polling will drive to 'confirmed'.
+      expect(ref.progress).toBe('verifying');
     });
   });
 

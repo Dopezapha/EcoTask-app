@@ -321,4 +321,67 @@ describe('activityStore', () => {
     useActivityStore.getState().clearActivities();
     expect(useActivityStore.getState().activities).toEqual([]);
   });
+
+  it('updateActivityStatus patches the status of a single activity', () => {
+    useActivityStore.getState().addActivity({
+      id: 'a1',
+      taskId: 't1',
+      taskTitle: 'Plant tree',
+      taskType: 'TREE_PLANTING',
+      rewardAmount: 0,
+      rewardToken: 'ECO',
+      completedAt: '2026-01-01',
+      status: 'pending',
+    });
+    useActivityStore.getState().updateActivityStatus('a1', 'confirmed', 10);
+    const activity = useActivityStore
+      .getState()
+      .activities.find(a => a.id === 'a1');
+    expect(activity?.status).toBe('confirmed');
+    expect(activity?.rewardAmount).toBe(10);
+  });
+
+  it('updateActivityStatus does not mutate unrelated activities', () => {
+    useActivityStore.getState().addActivity({
+      id: 'a1',
+      taskId: 't1',
+      taskTitle: 'Task 1',
+      taskType: 'OTHER',
+      rewardAmount: 5,
+      rewardToken: 'ECO',
+      completedAt: '2026-01-01',
+      status: 'pending',
+    });
+    useActivityStore.getState().addActivity({
+      id: 'a2',
+      taskId: 't2',
+      taskTitle: 'Task 2',
+      taskType: 'OTHER',
+      rewardAmount: 3,
+      rewardToken: 'ECO',
+      completedAt: '2026-01-02',
+      status: 'pending',
+    });
+    useActivityStore.getState().updateActivityStatus('a1', 'failed');
+    const a2 = useActivityStore.getState().activities.find(a => a.id === 'a2');
+    expect(a2?.status).toBe('pending');
+  });
+
+  it('updateActivityStatus to confirmed updates streaks', () => {
+    useActivityStore.getState().addActivity({
+      id: 'a1',
+      taskId: 't1',
+      taskTitle: 'Task',
+      taskType: 'OTHER',
+      rewardAmount: 0,
+      rewardToken: 'ECO',
+      completedAt: new Date().toISOString(),
+      status: 'pending',
+    });
+    // Streak should be 0 while pending.
+    expect(useActivityStore.getState().streak).toBe(0);
+    useActivityStore.getState().updateActivityStatus('a1', 'confirmed');
+    // Now it's confirmed, streak should become 1.
+    expect(useActivityStore.getState().streak).toBe(1);
+  });
 });

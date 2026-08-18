@@ -94,7 +94,13 @@ export function useProofSubmit() {
   );
 
   const submit = useCallback(
-    async (taskId: string, photoUri: string, lat?: number, lng?: number) => {
+    async (
+      taskId: string,
+      photoUri: string,
+      capturedAt: string,
+      lat?: number,
+      lng?: number,
+    ) => {
       setIsSubmitting(true);
       setProgress('uploading');
       setError(null);
@@ -104,7 +110,9 @@ export function useProofSubmit() {
         const result = await submitProofAttempt(taskId, photoUri, { lat, lng });
         removeProofsForTask(taskId);
         setPendingCount(loadQueue().length);
-        setProgress('confirmed');
+        // Stay in 'verifying' — the caller mounts useProofStatus which drives
+        // the transition to 'confirmed' or 'failed' once the backend responds.
+        setProgress('verifying');
         return result;
       } catch (err) {
         enqueueProof({
@@ -114,6 +122,7 @@ export function useProofSubmit() {
           lat,
           lng,
           createdAt: new Date().toISOString(),
+          capturedAt,
           photoCid: (err as any)?.photoCid,
           metadataCid: (err as any)?.metadataCid,
         });
