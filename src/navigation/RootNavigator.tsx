@@ -1,6 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Linking } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  NavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useWalletStore } from '../store/walletStore';
 import MainTabNavigator from './MainTabNavigator';
@@ -13,6 +16,14 @@ import SubmitProofScreen from '../screens/SubmitProofScreen';
 import SendTokensScreen from '../screens/SendTokensScreen';
 import { SubmitProofParams } from '../types';
 import { ECOTASK_SCHEME, resolveLobstrCallback } from '../services/lobstr';
+import {
+  registerForPushNotifications,
+  sendTokenToServer,
+  listenForTokenRefresh,
+  scheduleLocalNotification,
+  NOTIFICATION_TYPES,
+} from '../services/notifications';
+import { getMessaging } from '../services/firebaseMessaging';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -26,6 +37,42 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+/**
+ * Parse a deep-link string such as "ecotask://tasks" or
+ * "ecotask://task/abc123" into a screen name + params understood by the
+ * RootStack navigator.
+ */
+function parseDeepLink(link: string | undefined): {
+  screen: keyof RootStackParamList;
+  params?: Record<string, unknown>;
+} | null {
+  if (!link) {
+    return null;
+  }
+  try {
+    const url = new URL(link);
+    const path = url.pathname.replace(/^\//, '') || url.host;
+    if (path === 'tasks') {
+      return { screen: 'Main' };
+    }
+    if (path.startsWith('task/')) {
+      const taskId = path.split('/')[1];
+      if (taskId) {
+        return { screen: 'TaskDetail', params: { taskId } };
+      }
+    }
+    if (path === 'wallet') {
+      return { screen: 'Main' };
+    }
+    if (path === 'notifications') {
+      return { screen: 'NotificationPreferences' };
+    }
+  } catch {
+    // Malformed URL — ignore.
+  }
+  return null;
+}
 
 /**
  * Linking configuration for the `ecotask://` deep-link scheme.
@@ -44,17 +91,91 @@ const linking = {
 
 export default function RootNavigator() {
   const isConnected = useWalletStore(s => s.isConnected);
+  const navigationRef =
+    useRef<NavigationContainerRef<RootStackParamList>>(null);
+
+  const pendingDeepLink = useRef<string | null>(null);
+
+  const navigate = useCallback((link: string | undefined) => {
+    const target = parseDeepLink(link);
+    if (!target) {
+      return;
+    }
+    const nav = navigationRef.current;
+    if (!nav?.isReady()) {
+      pendingDeepLink.current = link ?? null;
+      return;
+    }
+    if (target.params) {
+      nav.navigate(target.screen as any, target.params as any);
+    } else {
+      nav.navigate(target.screen as any);
+    }
+  }, []);
 
   useEffect(() => {
-    /**
-     * Handle deep links that arrive while the app is already open
-     * (foreground / background).
-     */
+    let stopTokenRefresh: (() => void) | null = null;
+
+    const bootstrap = async () => {
+      const token = await registerForPushNotifications();
+      if (token) {
+        await sendTokenToServer(token);
+      }
+
+      stopTokenRefresh = listenForTokenRefresh(async (newToken: string) => {
+        await sendTokenToServer(newToken);
+      });
+
+      const messaging = getMessaging();
+
+      const initialNotification = await messaging.getInitialNotification();
+      if (initialNotification?.data?.deepLink) {
+        pendingDeepLink.current = initialNotification.data.deepLink as string;
+      }
+
+      const unsubForeground = messaging.onMessage(async remoteMessage => {
+        const data = (remoteMessage.data ?? {}) as Record<string, string>;
+        const type =
+          data.type ?? data.notificationType ?? NOTIFICATION_TYPES.NEW_TASK;
+        await scheduleLocalNotification({
+          title: remoteMessage.notification?.title ?? 'EcoTask',
+          body: remoteMessage.notification?.body ?? '',
+          type,
+          data: { ...data, type },
+          deepLink: data.deepLink,
+        });
+      });
+
+      messaging.onNotificationOpenedApp(remoteMessage => {
+        const deepLink = (remoteMessage.data?.deepLink as string) ?? undefined;
+        navigate(deepLink);
+      });
+
+      return () => {
+        unsubForeground();
+      };
+    };
+
+    const cleanupPromise = bootstrap();
+
+    return () => {
+      stopTokenRefresh?.();
+      cleanupPromise.then(cleanup => cleanup?.());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleNavigatorReady = useCallback(() => {
+    if (pendingDeepLink.current) {
+      navigate(pendingDeepLink.current);
+      pendingDeepLink.current = null;
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     function handleUrl({ url }: { url: string }) {
       try {
         const parsed = new URL(url);
-        // ecotask://lobstr/callback?xdr=...
-        // URL parses: hostname='lobstr', pathname='/callback'
         if (
           parsed.protocol === `${ECOTASK_SCHEME}:` &&
           parsed.hostname === 'lobstr' &&
@@ -69,7 +190,6 @@ export default function RootNavigator() {
 
     const subscription = Linking.addEventListener('url', handleUrl);
 
-    // Handle the case where the app was launched cold via a deep link.
     Linking.getInitialURL().then(url => {
       if (url) {
         handleUrl({ url });
@@ -82,7 +202,11 @@ export default function RootNavigator() {
   }, []);
 
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={handleNavigatorReady}
+      linking={linking}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isConnected ? (
           <>
