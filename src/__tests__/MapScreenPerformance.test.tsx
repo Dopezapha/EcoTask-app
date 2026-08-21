@@ -7,7 +7,11 @@ jest.mock('react-native-maps', () => {
 
   const MapView = MockReact.forwardRef(
     (
-      props: { children?: React.ReactNode; testID?: string; onRegionChangeComplete?: (region: any) => void },
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onRegionChangeComplete?: (region: any) => void;
+      },
       ref: React.Ref<any>,
     ) => {
       MockReact.useImperativeHandle(ref, () => ({
@@ -17,9 +21,24 @@ jest.mock('react-native-maps', () => {
     },
   );
 
-  const Marker = ({ children, testID, title, description, onCalloutPress }: any) => (
+  const Marker = ({
+    children,
+    testID,
+    title,
+    description,
+    onCalloutPress,
+  }: any) => (
     <View testID={testID}>
       {children}
+      <View
+        testID={`callout-${testID}`}
+        accessible
+        accessibilityRole="button"
+        onStartShouldSetResponder={() => {
+          onCalloutPress?.();
+          return false;
+        }}
+      />
       <View testID={`callout-title-${testID}`}>{title}</View>
       <View testID={`callout-desc-${testID}`}>{description}</View>
     </View>
@@ -92,8 +111,9 @@ describe('MapScreen Performance - Clustering and Region Throttling', () => {
       refresh: jest.fn(),
     });
 
+    // Space tasks out by 0.02 degrees so they cluster at precision 0 but uncluster at precision 2
     clusteredTasks = Array.from({ length: 12 }, (_, i) =>
-      makeTask(String(i), 51.5 + i * 0.0001, -0.1 + i * 0.0001),
+      makeTask(String(i), 51.5 + i * 0.02, -0.1 + i * 0.02),
     );
     defaultFeed(clusteredTasks);
   });

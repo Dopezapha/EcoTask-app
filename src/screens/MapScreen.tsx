@@ -169,7 +169,10 @@ export default function MapScreen() {
     return delta > 10 ? 0 : delta > 1 ? 1 : 2;
   }, [region?.latitudeDelta]);
 
-  const clustered = useMemo(() => clusterTasks(tasks, precision), [tasks, precision]);
+  const clustered = useMemo(
+    () => clusterTasks(tasks, precision),
+    [tasks, precision],
+  );
 
   const handleCalloutPress = useCallback(
     (task: Task) => {
